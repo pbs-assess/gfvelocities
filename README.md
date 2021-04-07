@@ -1,4 +1,4 @@
-## gfvelocities: Spatiotemporal modelling of groundfish biomass densities in response to climate
+## gfvelocities: spatiotemporal modelling of groundfish biomass density change in response to climate
 
 This package contains the code used in the analysis described in the manuscript posted as preprint at https://ecoevorxiv.org/b87ng/.
 
