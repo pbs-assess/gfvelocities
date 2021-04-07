@@ -1,0 +1,690 @@
+---
+title: "Spatiotemporal models of DO"
+author: "Philina English"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+# Fit spatial temporal models of bottom DO
+
+```{r setup}
+library(tidyverse)
+library(gfplot)
+library(sdmTMB)
+library(gfranges)
+
+plot_map_raster <- function(dat, column = "est") {
+    ggplot(dat, aes_string("X", "Y", fill = column)) +
+    geom_raster() +
+    coord_fixed()+
+gfplot::theme_pbs() + theme(
+  axis.title = element_blank(), 
+  axis.ticks = element_blank(),
+  axis.text = element_blank()
+  )
+}
+```
+
+Model diagnostics function
+```{r}
+get_diag <- function(m, response = "log_do", variable = "depth_scaled", colour_var =  "raw_depth") {
+  predictions <- predict(m)
+  predictions$residuals <- residuals(m)
+
+  plot_map <- function(dat, column = "est") {
+    ggplot(dat, aes_string("X", "Y", colour = column)) +
+      geom_point() +
+      coord_fixed()+
+      gfplot::theme_pbs() 
+  }
+
+  g <- plot_map(predictions, "est") +
+    scale_colour_viridis_c() +
+    ggtitle("Prediction (fixed effects + all random effects)")
+  print(g)
+
+  g <- plot_map(predictions, "est_non_rf") +
+    ggtitle("Prediction (fixed effects only)") +
+    scale_colour_viridis_c()
+  print(g)
+
+  g <- plot_map(predictions, "est_rf") +
+    ggtitle("All random effects only") +
+    scale_colour_gradient2()
+  print(g)
+
+  g <- plot_map(predictions, "omega_s") +
+    ggtitle("Spatial random effects only") +
+    scale_colour_gradient2()
+  print(g)
+
+  g <- plot_map(predictions, "epsilon_st") +
+    ggtitle("Spatiotemporal random effects only") +
+    facet_wrap(~year) +
+    scale_colour_gradient2()
+  print(g)
+
+  g <- ggplot(predictions, aes_string("est", response)) +
+    geom_point(alpha = 0.2) +
+    facet_wrap(~year) +
+    coord_fixed() +
+    geom_abline()+
+    gfplot::theme_pbs() 
+  print(g)
+
+  g <- ggplot(predictions, aes(est, residuals)) +
+    geom_point(alpha = 0.2) +
+    geom_smooth()+
+    gfplot::theme_pbs() 
+  print(g)
+
+g <- ggplot(predictions, aes_string(variable, "residuals", colour = colour_var)) +
+    # geom_point(alpha = 0.2) +
+    geom_point(alpha = 0.4, size = 0.7) +    
+    geom_smooth(colour="grey", size = 0.7) +
+    scale_colour_viridis_c(option = "B", direction = -1, begin = 0, end = 0.7, trans= sqrt) +
+    facet_wrap(~year, scales = "free_x")+
+    gfplot::theme_pbs() + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+  # g <- ggplot(predictions, aes_string(variable, "residuals")) +
+  #   geom_point(alpha = 0.2) +
+  #   geom_smooth() +
+  #   facet_wrap(~year)+
+  #   gfplot::theme_pbs() 
+  print(g)
+
+  g <- ggplot(predictions, aes(X, Y, colour = residuals)) +
+    geom_point(alpha = 0.2) +
+    coord_fixed() +
+    scale_color_gradient2() +
+    facet_wrap(~year)+
+    gfplot::theme_pbs() 
+  print(g)
+
+  aic <- function(m) {
+    k <- length(m$model$par)
+    nll <- m$model$objective
+    2 * k - 2 * (-nll)
+  }
+
+  print("R^2:")
+  r2 <- cor(predictions$est, predictions[[response]])^2
+  print(r2)
+
+  print("")
+  print("AIC:")
+  print(aic(m))
+}
+```
+
+Load data
+```{r}
+all_sensor <- readRDS(here::here("analysis/tmb-sensor-explore/data/all-sensor-data-processed.rds"))
+# glimpse(all_sensor)
+# 
+# all_sensor <- all_sensor %>%
+#   mutate(do_mlpl = if_else(year == 2007, NA_real_, do_mlpl),
+#     do_mlpl_max = if_else(year == 2007, NA_real_, do_mlpl_max),
+#     do_mlpl_min = if_else(year == 2007, NA_real_, do_mlpl_min),
+#     do_mlpl_N = if_else(year == 2007, NA_integer_, do_mlpl_N),
+#     do_range = if_else(year == 2007, NA_real_, do_range),
+#     do_change = if_else(year == 2007, NA_real_, do_change)) %>% select(-akima_depth, -exclude)
+# 
+# write_csv(all_sensor, here::here("analysis/tmb-sensor-explore/data/all-sensor-data-processed.csv"))
+
+
+d_trawl <- all_sensor %>%
+  # filter missing do data
+  dplyr::filter(!is.na(do_mlpl)) %>%
+  # remove 2007 data because clearly faulty or scaled differently
+  dplyr::filter(year > 2007) %>%
+  # add day of year variable
+  mutate(
+    DOY = lubridate::yday(fe_event_start), temp = temperature_c,
+    raw_depth = depth, depth = log(depth), log_do = log(do_mlpl)
+  ) %>%
+  # scale potential covariates across all surveys
+  scale_predictors(predictors = c(quo(depth), quo(DOY), quo(temp)))
+
+d_trawl <- d_trawl[!is.na(d_trawl$depth), ]
+d_trawl <- d_trawl[!is.na(d_trawl$temperature_c), ]
+
+d_trawl <- d_trawl %>%
+  mutate(exclude = if_else(do_mlpl > 8, 1, 0)) %>%
+  filter(exclude != 1)
+
+# glimpse(d_trawl)
+```
+
+# Data exploration
+Check range of depths and DO sampled
+```{r}
+paste("depth")
+range(d_trawl$raw_depth)
+paste("DO")
+range(d_trawl$do_mlpl)
+```
+
+
+```{r}
+ggplot(d_trawl, aes(X, Y, colour = do_mlpl)) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(d_trawl, aes(X, Y, colour = temp)) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(filter(d_trawl, depth_m_max < 80), aes(DOY, log_do, colour = depth)) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+ggplot(filter(d_trawl, depth_m_max > 80 & depth_m_max < 120), aes(DOY, log_do, colour = depth)) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(d_trawl, aes(depth, do_mlpl, colour = DOY, size = sqrt(do_change))) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(d_trawl, aes(raw_depth, temp, colour = DOY, size = sqrt(temp_range))) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(d_trawl, aes(temp, log_do, colour = DOY, size = sqrt(temp_range))) +
+  geom_point() +
+  facet_wrap(~year) +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(filter(d_trawl, ssid == 4), aes(DOY, log_do, colour = temp)) +
+  geom_point() +
+  facet_grid(ssid ~ year, scales = "free") +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(filter(d_trawl, ssid == 4), aes(DOY, temp, colour = temp)) +
+  geom_point() +
+  facet_grid(ssid ~ year, scales = "free") +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(filter(d_trawl, ssid == 4 & !(year == 2016 & DOY > 149)), aes(X, Y, colour = log_do)) +
+  geom_point() +
+  facet_grid(ssid ~ year, scales = "free") +
+  scale_color_viridis_c()
+```
+
+```{r}
+ggplot(filter(d_trawl, year == 2016), aes((temp), log(do_mlpl), colour = as.factor(ssid))) +
+  geom_point() +
+  # facet_wrap(~year) +
+  scale_color_viridis_d(begin = 0.65)
+```
+
+```{r}
+ggplot(filter(d_trawl, year == 2017), aes(x = (temp), log(do_mlpl), colour = as.factor(ssid))) +
+  geom_point() +
+  # facet_wrap(~year) +
+  scale_color_viridis_d(end = 0.35)
+```
+
+```{r}
+ggplot(d_trawl, aes(DOY, -depth, colour = do_mlpl)) + geom_point() + facet_wrap(~year) +
+  scale_color_viridis_c() + ylab("-log(depth)")
+```
+
+```{r}
+hist(d_trawl$do_mlpl)
+# log do_mlpl to allow gaussian
+hist(d_trawl$log_do)
+```
+
+# Define spatial and temporal components to include in model
+Remove most samples from WCVI in 2016 due to extreme values and make mesh
+```{r}
+d_trawl1 <- d_trawl %>% filter(!(year == 2016 & ssid == 4 & DOY > 149))
+
+spde <- make_spde(d_trawl1$X, d_trawl1$Y, n_knots = 800)
+plot_spde(spde)
+```
+
+# Define and run model
+Current best model of DO
+```{r eval=FALSE}
+
+# do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn.rds")))
+d_trawl1 <- do_model_all_DOY$data
+spde <- make_mesh(d_trawl1, xy_cols=c("X", "Y"), n_knots = 800, type = "kmeans")
+plot(spde)
+do_model_all_DOY <- sdmTMB::sdmTMB(
+  log_do ~ 0 + as.factor(year) + temp_scaled + temp_scaled2 + DOY_scaled,
+  data = d_trawl1,
+  time_varying = ~ 0 + depth_scaled + depth_scaled2,
+  time = "year",
+  spde = spde,
+  family = gaussian(link = "identity"),
+  ar1_fields = TRUE,
+  include_spatial = TRUE,
+  nlminb_loops = 2,
+  newton_steps = 1,
+  silent = FALSE
+)
+
+saveRDS(do_model_all_DOY, file = (here::here(
+  paste0(
+    "analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-",
+    "800kn", # Sys.Date(),
+    "-update.rds"
+  )
+)))
+```
+
+# Check diagnostics
+```{r eval=T}
+# do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016-depth3.rds"))) # 500 knots, poly-3 of depth
+# do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016-depth2.rds"))) # 500 knots, poly-2 of depth
+# do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016-800kn.rds"))) # 800 knots
+do_model_all_DOY_old <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn.rds"))) # add in some WCVI 2016 data
+do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn-update.rds"))) # rerun in new format. No other changes
+# do_model_all_DOY <- sdmTMB:::update_model(do_model_all_DOY)
+get_diag(do_model_all_DOY, response = "log_do", variable = "depth_scaled", colour_var =  "raw_depth")
+
+get_diag(do_model_all_DOY, response = "log_do", variable = "DOY_scaled", colour_var =  "raw_depth")
+get_diag(do_model_all_DOY, response = "log_do", variable = "temp_scaled", colour_var =  "raw_depth")
+```
+
+```{r eval=FALSE}
+predictions <- predict(do_model_all_DOY)
+predictions$residuals <- residuals(do_model_all_DOY)
+
+predictions$abs <- exp(abs(predictions$residuals))
+pred_rows <- filter (predictions, abs != "Inf")
+sum(pred_rows$abs) # sum absolute error, divided by nrow for mean absolute error
+# 19719.73-17459.49 # difference in absolute error between 500 and 800 knots
+# 2260.24/19719.73  # 11% reduction in abs errors
+```
+
+# DO predictions
+For whole grid using quadratic of predicted temperature values and mean DOY
+```{r eval=FALSE}
+model1 <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn.rds"))
+model2 <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn.rds"))
+
+nd_all <- readRDS(here::here("analysis/VOCC/data/nd_all_synoptic.rds")) %>% filter(year < 2019)
+
+pred_temp <- predict(model1, newdata = nd_all)
+
+predtemp <- pred_temp %>%
+  mutate(
+    temp = est,
+    temp_omega = omega_s,
+    temp_epsilon = epsilon_st,
+    temp_scaled = (est - model2$data$temp_mean[1]) / model2$data$temp_sd[1],
+    temp_scaled2 = (temp_scaled)^2
+  ) %>%
+  select(-est, -est_non_rf, -est_rf, -omega_s, -zeta_s, -epsilon_st)
+predtemp <- predtemp %>% filter(year > 2007)
+predtemp$DOY_scaled <- 0
+
+# make DO predictions
+pred_do <- predict(model2, newdata = predtemp)
+
+# rename and back transform climate variables
+pred_do$log_do <- pred_do$est
+pred_do$do_est <- exp(pred_do$log_do)
+
+saveRDS(pred_do, file = here::here(paste0("analysis/VOCC/data/predicted-DO-", Sys.Date(), "-more2016.rds")))
+```
+
+
+Time-varying depth 
+```{r eval = F}
+# pd <- expand.grid(
+#   temp_scaled = 0,
+#   temp_scaled2 = 0,
+#   DOY_scaled = 0, 
+#   depth_scaled = seq(min(do_model_all_DOY$data$depth_scaled),
+#     max(do_model_all_DOY$data$depth_scaled), length.out = 30),
+#   year = unique(do_model_all_DOY$data$year)
+# )
+# pd$depth_scaled2 <- pd$depth_scaled^2
+# 
+# p <- predict(do_model_all_DOY, newdata = pd, se_fit = TRUE, re_form = NA)
+# 
+# p$DO <- exp(p$est)
+# p$lowCI <- exp(p$est - 1.96 * p$est_se)
+# p$highCI <- exp(p$est + 1.96 * p$est_se)
+# 
+# p$Depth <- exp(p$depth_scaled*do_model_all_DOY$data$depth_sd[1]+do_model_all_DOY$data$depth_mean[1])
+# saveRDS(p, here::here("analysis/tmb-sensor-explore/data/depth-tv-m-do-DOY-800kn.rds"))
+
+p <- readRDS(here::here("analysis/tmb-sensor-explore/data/depth-tv-m-do-DOY-800kn.rds"))
+
+ggplot(filter(p, year != 2007), aes(Depth, exp(est), 
+  ymin = lowCI,
+  ymax = highCI,
+  group = as.factor(year), fill = year, colour = year)) +
+  geom_line(size = 0.5, alpha =0.85) +
+  # geom_smooth(method= "loess", size = 0.4, alpha =0.85, se =F ) +
+  # geom_smooth(span = 0.5, size = 0.4, alpha =0.85, se =F ) +
+  scale_fill_viridis_c(option = "C") +
+  scale_colour_viridis_c(option = "C") +
+  ylab("DO") +
+  geom_ribbon(alpha = 0.2, colour = NA) +
+  scale_y_continuous(limits = c(0.5,5)) +
+  scale_x_reverse(limits = c(650,20)) +
+  coord_flip() +
+  # scale_x_continuous(limits = c(18,210)) +
+  gfplot::theme_pbs() +
+  theme(legend.position = c(.8,.4))
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/depth-tv-m-do-DOY-800-kn.png"), width = 3, height = 2.5)
+```
+
+Temperature effect
+```{r}
+### temp
+min(do_model_all_DOY$data$temp_scaled)
+# 
+# pd <- expand.grid(
+#   temp_scaled = seq(min(do_model_all_DOY$data$temp_scaled) + 0.1,
+#     max(do_model_all_DOY$data$temp_scaled) - 0.1, length.out = 20),
+#   DOY_scaled = 0, 
+#   depth_scaled = 0,
+#   depth_scaled2 = 0,
+#   # year = c(2017L, 2018L)
+#   year = unique(do_model_all_DOY$data$year) # seems to need multiple years? why?
+# ) %>% filter(year>2016)
+# # pd$depth_scaled2 <- pd$depth_scaled^2
+# pd$temp_scaled2 <-  pd$temp_scaled^2
+# # p <- predict(do_model_all_DOY, newdata = pd, se_fit = TRUE, re_form = NA, xy_cols = c("X", "Y"))
+# p <- predict(do_model_all_DOY, newdata = pd, se_fit = TRUE, re_form = NA)
+# 
+# p$DO <- exp(p$est)
+# p$lowCI <- exp(p$est - 1.96 * p$est_se)
+# p$highCI <- exp(p$est + 1.96 * p$est_se)
+# 
+# 
+p$Temperature <- do_model_all_DOY$data$temp_sd[1]*p$temp_scaled+do_model_all_DOY$data$temp_mean[1]
+saveRDS(p, here::here("analysis/tmb-sensor-explore/data/temp-m-do-DOY-800-kn.rds"))
+p <- readRDS(here::here("analysis/tmb-sensor-explore/data/temp-m-do-DOY-800-kn.rds"))
+
+ggplot(filter(p, Temperature < 15 & year <2018), aes(Temperature, DO, 
+  ymin = lowCI, 
+  ymax = highCI)) +
+  geom_line(size = 1.5, alpha =0.85) + 
+  # scale_color_viridis_c(option = "C") +
+  geom_ribbon(alpha=0.2) +
+  # ylim(20, 210) +
+  gfplot::theme_pbs() + 
+  theme(legend.position = c(.8,.4))
+
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/temp-m-do-DOY-800-kn.png"), width = 3, height = 2.5)
+
+```
+
+
+Seasonal effect
+```{r}
+# pd <- expand.grid(
+#   temp_scaled = 0,
+#   temp_scaled2 = 0,
+#   DOY_scaled = seq(min(do_model_all_DOY$data$DOY_scaled) + 0.1,
+#     max(do_model_all_DOY$data$DOY_scaled) - 0.1, length.out = 5),
+#   depth_scaled = 0,
+#   depth_scaled2 = 0,
+#   year = unique(do_model_all_DOY$data$year) # seems to need multiple years? why?
+# ) 
+# 
+# p <- predict(do_model_all_DOY, newdata = pd, se_fit = TRUE, re_form = NA)
+# 
+# p$DO <- exp(p$est)
+# p$lowCI <- exp(p$est - 1.96 * p$est_se)
+# p$highCI <- exp(p$est + 1.96 * p$est_se)
+# 
+# p$DOY <- p$DOY_scaled*do_model_all_DOY$data$DOY_sd[1]+ do_model_all_DOY$data$DOY_mean[1]
+# 
+# saveRDS(p, here::here("analysis/tmb-sensor-explore/data/DOY-do-800-kn.rds"))
+p <- readRDS(here::here("analysis/tmb-sensor-explore/data/DOY-do-800-kn.rds"))
+
+ggplot(filter(p), aes(DOY, DO, 
+  ymin = lowCI, 
+  ymax = highCI, 
+  group= as.factor(year), fill = year, colour = year)) +
+  geom_line(size = 1.5, alpha =0.85) + 
+  scale_fill_viridis_c(option = "C") +
+  scale_color_viridis_c(option = "C") +
+  geom_ribbon(alpha = 0.05, colour = NA) +
+  # ylim(20, 210) +
+  coord_cartesian(ylim = c(1,5)) +
+  gfplot::theme_pbs()# + 
+  # theme(legend.position = c(.8,.7))
+
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/do-DOY-800-kn.png"), width = 3, height = 2.5)
+```
+
+
+
+Plot predictions from saved DO predictions file
+```{r}
+p_nd <- readRDS((here::here("analysis/VOCC/data/predicted-DO-2020-06-20-more2016.rds")))
+p_nd <- readRDS("~/github/dfo/gfranges/analysis/VOCC/data/predicted-DO-2020-06-20-more2016-roms.rds")
+plot_map_raster(p_nd, "do_est") +
+  scale_fill_viridis_c(trans = "log") +
+  facet_wrap(~year) +
+  ggtitle("Prediction (fixed effects + all random effects)")
+```
+
+Plot each survey separately
+```{r}
+p_nd1 <- p_nd %>%
+  filter(ssid != 16) %>%
+  filter(ssid != 4)
+
+breaks <- scales::trans_breaks(no_trans[["transform"]], no_trans[["inverse"]], n = 6)
+labels <- function(x) format(x, digits = 2, scientific = FALSE)
+
+pred_1 <- plot_map_raster(p_nd1, "do_est") +
+  scale_fill_viridis_c(
+    labels = labels, breaks = c(0, 2, 4, 6, 8),
+    limits = c(0, 7),
+    na.value = "gold"
+  ) +
+  facet_wrap(~year) +
+  labs(fill = "ml/L DO") +
+  ggtitle("Prediction (fixed effects + all random effects)") +
+  theme(legend.position = c(.85, .25))
+pred_1
+```
+
+```{r}
+p_nd4 <- p_nd %>% filter(ssid == 4) # %>% filter(year!=2016)
+pred_4 <- plot_map_raster(p_nd4, "do_est") +
+  scale_fill_viridis_c(
+    labels = labels, breaks = c(0, 2, 4, 6, 8), limits = c(0, 7),
+    na.value = "red"
+  ) +
+  facet_wrap(~year) +
+  labs(fill = "ml/L DO") +
+  # ggtitle(" ")+
+  theme(legend.position = "none")
+pred_4
+```
+
+
+```{r}
+p_nd16 <- p_nd %>% filter(ssid == 16) # %>% filter(year!=2016)
+pred_16 <- plot_map_raster(p_nd16, "do_est") +
+  scale_fill_viridis_c(
+    labels = labels, breaks = c(0, 2, 4, 6, 8), limits = c(0, 7),
+    na.value = "red"
+  ) +
+  facet_wrap(~year) +
+  labs(fill = "ml/L DO") +
+  # ggtitle(" ")+
+  theme(legend.position = "none")
+pred_16
+```
+
+```{r}
+plot_map_raster(p_nd, "est_non_rf") +
+  ggtitle("Prediction (fixed effects only)") +
+  facet_wrap(~year) +
+  scale_fill_viridis_c()
+```
+
+```{r}
+plot_map_raster(p_nd, "est_rf") +
+  ggtitle("Prediction (all random effects only)") +
+  facet_wrap(~year) +
+  scale_fill_gradient2(
+    high = "Steel Blue 4",
+    low = "Red 3"
+  ) # , limits = c(-0.65,1)
+# scale_fill_viridis_c()
+```
+
+```{r}
+p_nd <- readRDS("~/github/dfo/gfranges/analysis/VOCC/data/predicted-DO-2020-06-20-more2016-roms.rds")
+
+(omega_s_all <- plot_map_raster(p_nd, "omega_s") +
+  ggtitle("Spatial random effects only") +
+  scale_fill_gradient2(
+    # high = "Steel Blue 4", low = "Red 3",
+    high = "gold", low = "darkcyan",
+    limits = c(-0.65, 1)
+  ) +
+  labs(fill = " ") +
+  theme(legend.position = c(.2, .3)))
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/omegas-do-rw-800-kn-yg.png"), width = 3, height = 3)
+omega_s_all
+```
+
+```{r}
+plot_map_raster(p_nd, "epsilon_st") +
+  ggtitle("Spatiotemporal random effects only") +
+  facet_wrap(~year) +
+  scale_fill_gradient2(
+    high = "Steel Blue 4",
+    low = "Red 3"
+  )
+```
+
+```{r}
+p_nd <- readRDS("~/github/dfo/gfranges/analysis/VOCC/data/predicted-DO-2020-06-20-more2016-roms.rds")
+
+p_nd1 <- p_nd %>%
+  filter(ssid != 16) %>%
+  filter(ssid != 4)
+
+(st_1n3 <- plot_map_raster(p_nd1, "epsilon_st") +
+  ggtitle("Spatiotemporal random effects") +
+  facet_grid(~year) +
+  scale_fill_gradient2(
+    # high = "Steel Blue 4", low = "Red 3", 
+    high = "gold", low = "darkcyan",
+    limits = c(-0.65, 1)
+  ) +
+  labs(fill = " ") + theme( legend.position = "none") )
+
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/do-epsilon-1n3-yg.png"), width = 6, height = 2)
+# st_1n3
+```
+
+```{r}
+p_nd <- readRDS("~/github/dfo/gfranges/analysis/VOCC/data/predicted-DO-2020-06-20-more2016-roms.rds")
+
+p_nd4 <- p_nd %>% filter(ssid == 4) # %>% filter(year!=2016)
+(st_4 <- plot_map_raster(p_nd4, "epsilon_st") +
+  # ggtitle(" ") +
+  facet_grid(~year) +
+  scale_fill_gradient2(
+    # high = "Steel Blue 4", low = "Red 3", 
+    high = "gold", low = "darkcyan",
+    limits = c(-0.65, 1)
+  ) +
+  labs(fill = "epsilon") + theme( legend.position = "none") )
+
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/do-epsilon-4-yg.png"), width = 6, height = 2)
+# st_4
+```
+
+```{r}
+p_nd <- readRDS("~/github/dfo/gfranges/analysis/VOCC/data/predicted-DO-2020-06-20-more2016-roms.rds")
+
+p_nd16 <- p_nd %>% filter(ssid == 16) # %>% filter(ssid!=4)
+(st_16 <- plot_map_raster(p_nd16, "epsilon_st") +
+  # ggtitle(" ") +
+  facet_grid(~year) +
+  scale_fill_gradient2(
+    # high = "Steel Blue 4", low = "Red 3", 
+    high = "gold", low = "darkcyan",
+    limits = c(-0.65, 1)
+  ) +
+  xlim(20,360) + ylim(5850,6050)+ 
+  # xlim(65,345) + ylim(5800,6100)+ 
+    theme(panel.border = element_blank(), legend.position = "none") )
+
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/do-epsilon-16-yg.png"), width = 6, height = 1)
+# st_16
+```
+
+```{r}
+p_nd <- readRDS("~/github/dfo/gfranges/analysis/VOCC/data/predicted-DO-2020-06-20-more2016-roms.rds")
+
+ggplot(p_nd, aes(roms_temp, temp, colour = depth)) +
+  geom_point(alpha = 0.1, size = 0.5) + 
+  scale_color_viridis_c(option = "B", begin = 0, end = 0.7, direction = -1, trans= sqrt) + 
+  xlim(2,15) +
+  ylim(2,15) +
+  geom_abline(intercept = 0, slope = 1, colour="grey") +
+  ylab("Mean May-August temperature from CTD only model ") +
+  xlab("Mean April-September temperature from ROMS model ") +
+  gfplot::theme_pbs() + 
+    theme(legend.position = "none") 
+ggsave(filename = here::here("analysis/tmb-sensor-explore/figs/roms.png"), width = 4.5, height =4.5)
+
+```
+
+
+
+Save selection of prediction plots
+```{r, eval= F}
+png(
+  file = "figs/do-predictions-without-wcvi2016.png",
+  res = 600,
+  units = "in",
+  width = 11,
+  height = 6.5
+)
+
+gridExtra::grid.arrange(
+  grobs = list(pred_1, st_1n3, omega_s_all, pred_4, st_4, st_16),
+  widths = c(2, 2, 1.75),
+  heights = c(2, 1.5),
+  layout_matrix = rbind(
+    c(1, 2, 3),
+    c(4, 5, 6)
+  ),
+  top = grid::textGrob("Dissolved oxygen estimates from sdmTMB model")
+)
+dev.off()
+```
