@@ -57,7 +57,7 @@ split_catch_maturity <- function(survey_sets, fish, bath,
     filter(year %in% years)
 
   # use internal version of tidy_survey_sets to include ssid and month columns
-  tidy_sets <- gfranges::tidy_survey_sets(survey_sets, survey = survey, years = years)
+  tidy_sets <- gfvelocities::tidy_survey_sets(survey_sets, survey = survey, years = years)
   tidy_sets <- add_missing_depths(tidy_sets, survey = survey, years = years, bath = bath)
 
   model_ssid <- unique(tidy_sets$ssid)
@@ -220,7 +220,7 @@ split_catch_maturity <- function(survey_sets, fish, bath,
       mutate(adult_density = density * mass_ratio_mature, imm_density = density * (1 - mass_ratio_mature))
 
     if (plot) {
-      try(maturity_plot <- gfranges::plot_mat_ogive(m) +
+      try(maturity_plot <- gfvelocities::plot_mat_ogive(m) +
         ggplot2::ggtitle(paste("Length at maturity for", species, "surveys", ssid_string, "")))
 
       try(mass_plot <- ggplot(fish_maturity, aes(length, new_mass, colour = as.factor(sex))) +

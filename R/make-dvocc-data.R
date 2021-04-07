@@ -1,4 +1,4 @@
-#' Make VOCC vector data from sdmTMB output predict funciton
+#' Make analog-distance VOCC vector data from sdmTMB output predict funciton
 #'
 #' @param data List of dataframes each containing output from predict.
 #' @param ssid Vector of ssid to be included.

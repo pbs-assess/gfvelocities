@@ -319,26 +319,3 @@ add_colours <- function(coefs, col_var = "group",
   out
 }
 
-
-#' Strip qualifiers from variable names
-#' @export
-shortener <- function(string) {
-  out <- gsub("\\(", "", string) #coef_names[1:length()]
-  out <- gsub("\\, center = F)", "", out)
-  out <- gsub("_scaled", "", out)
-  out <- gsub("scale", "", out)
-  out <- gsub("\\)", "", out)
-  out <- gsub("squashed_", "", out)
-  out <- gsub("mean_", "", out)
-  out <- gsub("immature", "", out)
-  out <- gsub("mature ", "", out)
-  #out <- gsub("_", "", out)
-  out
-}
-
-#' Add capitals to start of strings
-#' @export
-firstup <- function(x){
-  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
-  x
-}
