@@ -36,6 +36,7 @@ knitr-cache
 *.o
 .Rbuildignore
 raw/
+ms/figs/
 *bathymetry-data
 ms.md
 ms.tex
