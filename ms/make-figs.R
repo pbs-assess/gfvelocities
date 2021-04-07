@@ -1,9 +1,19 @@
 setwd(here::here())
 
-library(TMB)
+library(gfvelocities)
 library(tidyverse)
 library(patchwork)
-library(gfranges)
+
+# needed but not loaded
+# library(TMB)?
+# grid
+# ggrepel
+# gfplot
+# readr
+# stringr
+# forcats
+# egg
+# cowplot
 
 write_tex <- function(x, macro, ...) {
   paste0("\\newcommand{\\", macro, "}{", x, "}") %>%

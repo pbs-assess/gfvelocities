@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot-conditional-effects.R
 \name{effect_plot}
 \alias{effect_plot}
-\title{Title}
+\title{Custom effect plot}
 \usage{
 effect_plot(
   model,
@@ -115,5 +115,5 @@ effect_plot(
 
 }
 \description{
-Title
+Custom effect plot
 }

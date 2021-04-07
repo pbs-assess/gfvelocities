@@ -5,11 +5,15 @@
 #########################
 # # if make-figs not just run
 # setwd(here::here())
-library(TMB)
-library(patchwork)
-library(gfranges)
-library(dotwhisker)
+library(gfvelocities)
 library(tidyverse)
+library(patchwork)
+
+# needed but not loaded
+# TMB?
+# grid
+# dotwhisker
+
 
 #### load appropriate final models and other data
 

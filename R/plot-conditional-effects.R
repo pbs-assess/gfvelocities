@@ -1,4 +1,4 @@
-#' Title
+#' Custom effect plot
 #'
 #' @param model 
 #' @param pred 
@@ -103,41 +103,13 @@ effect_plot <- function (model, pred, pred.values = NULL, centered = "all",
   }
 }
 
-
-#' Title
-#'
-#' @param predictions 
-#' @param pred 
-#' @param plot.points 
-#' @param interval 
-#' @param data 
-#' @param x.label 
-#' @param y.label 
-#' @param pred.labels 
-#' @param main.title 
-#' @param colors 
-#' @param line.thickness 
-#' @param jitter 
-#' @param resp 
-#' @param weights 
-#' @param rug 
-#' @param rug.sides 
-#' @param point.size 
-#' @param point.alpha 
-#' @param point.color 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-plot_effect_continuous <- function (predictions, pred, 
-  plot.points = FALSE, 
-  interval = FALSE, 
-  data = NULL, x.label = NULL, y.label = NULL, pred.labels = NULL, 
-  main.title = NULL, colors = NULL, line.thickness = 1.1, 
-  jitter = 0.1, resp = NULL, weights = NULL, rug = FALSE, 
-  rug.sides = "b", point.size = 1, point.alpha = 0.6, point.color = "black", 
-  point.color.var = point.color.var) 
+plot_effect_continuous <- function (predictions, pred,  plot.points = FALSE,
+  interval = FALSE,
+  data = NULL, x.label = NULL, y.label = NULL, pred.labels = NULL,
+  main.title = NULL, colors = NULL, line.thickness = 1.1,
+  jitter = 0.1, resp = NULL, weights = NULL, rug = FALSE,
+  rug.sides = "b", point.size = 1, point.alpha = 0.6, point.color = "black",
+  point.color.var = point.color.var)
 {
   pm <- predictions
   d <- data
@@ -156,48 +128,48 @@ plot_effect_continuous <- function (predictions, pred,
     jitter <- rep(jitter, 2)
   }
   p <- ggplot(pm, aes(x = !!pred, y = !!resp))
-  
+
   if (plot.points == TRUE) {
     constants <- list(alpha = point.alpha)
-    
+
     if (is.null(weights)) {
       constants$size <- point.size
     }
-    
+
     if (is.null(point.color.var)) {
     constants$colour <- point.color
-    
-    p <- p + 
-      layer(geom = "point", 
-        data = d, stat = "identity", 
-        inherit.aes = FALSE, show.legend = FALSE, 
-        mapping = aes(x = !!pred, y = !!resp, size = !!weights), 
-        position = position_jitter(width = jitter[1], 
-          height = jitter[2]), params = constants) + 
-      scale_size(range = c(1 * 
+
+    p <- p +
+      layer(geom = "point",
+        data = d, stat = "identity",
+        inherit.aes = FALSE, show.legend = FALSE,
+        mapping = aes(x = !!pred, y = !!resp, size = !!weights),
+        position = position_jitter(width = jitter[1],
+          height = jitter[2]), params = constants) +
+      scale_size(range = c(1 *
               point.size, 5 * point.size))
     } else {
       # browser()
-      p <- p + 
-        layer(geom = "point", 
-          data = d, stat = "identity", 
-          inherit.aes = FALSE, show.legend = FALSE, 
-          mapping = aes(x = !!pred, y = !!resp, size = !!weights, colour = !!point.color.var), 
-          position = position_jitter(width = jitter[1], 
-            height = jitter[2]), params = constants) + 
-        scale_size(range = c(1 * 
+      p <- p +
+        layer(geom = "point",
+          data = d, stat = "identity",
+          inherit.aes = FALSE, show.legend = FALSE,
+          mapping = aes(x = !!pred, y = !!resp, size = !!weights, colour = !!point.color.var),
+          position = position_jitter(width = jitter[1],
+            height = jitter[2]), params = constants) +
+        scale_size(range = c(1 *
             point.size, 5 * point.size))
     }
   }
-  
+
   p <- p + geom_path(size = line.thickness)
   if (interval == TRUE) {
-    p <- p + geom_ribbon(data = pm, aes(ymin = !!sym("ymin"), 
+    p <- p + geom_ribbon(data = pm, aes(ymin = !!sym("ymin"),
       ymax = !!sym("ymax")), fill = point.color, alpha = 1/5, show.legend = FALSE)
   }
   if (rug == TRUE) {
-    p <- p + geom_rug(data = d, mapping = aes(x = !!pred, 
-      y = !!resp), alpha = 0.6, position = position_jitter(width = jitter[1]), 
+    p <- p + geom_rug(data = d, mapping = aes(x = !!pred,
+      y = !!resp), alpha = 0.6, position = position_jitter(width = jitter[1]),
       sides = rug.sides, inherit.aes = TRUE)
   }
   p <- p + theme_nice(legend.pos = "right")
@@ -224,45 +196,45 @@ plot_effect_continuous <- function (predictions, pred,
 }
 
 
-#' Title
-#'
-#' @param p 
-#' @param hjust 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-align_legend <- function(p, hjust = 0.5)
-{
-  # extract legend
-  g <- cowplot::plot_to_gtable(p)
-  grobs <- g$grobs
-  legend_index <- which(sapply(grobs, function(x) x$name) == "guide-box")
-  legend <- grobs[[legend_index]]
-  
-  # extract guides table
-  guides_index <- which(sapply(legend$grobs, function(x) x$name) == "layout")
-  
-  # there can be multiple guides within one legend box  
-  for (gi in guides_index) {
-    guides <- legend$grobs[[gi]]
-    
-    # add extra column for spacing
-    # guides$width[5] is the extra spacing from the end of the legend text
-    # to the end of the legend title. If we instead distribute it by `hjust:(1-hjust)` on
-    # both sides, we get an aligned legend
-    spacing <- guides$width[5]
-    guides <- gtable::gtable_add_cols(guides, hjust*spacing, 1)
-    guides$widths[6] <- (1-hjust)*spacing
-    title_index <- guides$layout$name == "title"
-    guides$layout$l[title_index] <- 2
-    
-    # reconstruct guides and write back
-    legend$grobs[[gi]] <- guides
-  }
-  
-  # reconstruct legend and write back
-  g$grobs[[legend_index]] <- legend
-  g
-}
+#' #' align legend
+#' #'
+#' #' @param p 
+#' #' @param hjust 
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' align_legend <- function(p, hjust = 0.5)
+#' {
+#'   # extract legend
+#'   g <- cowplot::plot_to_gtable(p)
+#'   grobs <- g$grobs
+#'   legend_index <- which(sapply(grobs, function(x) x$name) == "guide-box")
+#'   legend <- grobs[[legend_index]]
+#'   
+#'   # extract guides table
+#'   guides_index <- which(sapply(legend$grobs, function(x) x$name) == "layout")
+#'   
+#'   # there can be multiple guides within one legend box  
+#'   for (gi in guides_index) {
+#'     guides <- legend$grobs[[gi]]
+#'     
+#'     # add extra column for spacing
+#'     # guides$width[5] is the extra spacing from the end of the legend text
+#'     # to the end of the legend title. If we instead distribute it by `hjust:(1-hjust)` on
+#'     # both sides, we get an aligned legend
+#'     spacing <- guides$width[5]
+#'     guides <- gtable::gtable_add_cols(guides, hjust*spacing, 1)
+#'     guides$widths[6] <- (1-hjust)*spacing
+#'     title_index <- guides$layout$name == "title"
+#'     guides$layout$l[title_index] <- 2
+#'     
+#'     # reconstruct guides and write back
+#'     legend$grobs[[gi]] <- guides
+#'   }
+#'   
+#'   # reconstruct legend and write back
+#'   g$grobs[[legend_index]] <- legend
+#'   g
+#' }

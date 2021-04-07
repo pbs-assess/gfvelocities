@@ -369,7 +369,8 @@ plot_vocc <- function(df,
   if (!is.null(grad_vec_aes)) {
     vector <- as.vector(na.omit(df[[grad_vec_aes]]))
     gvocc <- gvocc +
-      ggquiver::geom_quiver(aes(x, y,
+      # ggquiver::geom_quiver(aes(x, y,
+      geom_quiver(aes(x, y,
         u = u_velo, v = v_velo,
         size = vector
       ),
@@ -619,7 +620,8 @@ plot_gradient_vocc <- function(df,
 
 
   gvocc <- gvocc +
-    ggquiver::geom_quiver(aes(x, y,
+    # ggquiver::geom_quiver(aes(x, y,
+    geom_quiver(aes(x, y,
       u = u_velo, v = v_velo,
       colour = colour
     ),
