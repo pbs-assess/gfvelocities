@@ -29,9 +29,9 @@ run_meta_analysis <- function(
   ){ 
   # collapse function here to load and run subsequent code  
   setwd(here::here("analysis", "VOCC"))
-  compile("vocc_regression.cpp")
-  dyn.load(dynlib("vocc_regression"))
-  source("vocc-regression-functions.R")
+  compile("meta-analytic-model/vocc_regression.cpp")
+  dyn.load(dynlib("meta-analytic-model/vocc_regression"))
+  source("meta-analytic-model/vocc-regression-functions.R")
   
   #### LOAD DATA ####
   d <- readRDS(paste0("data/", data_type, "-with-null", null_number, ".rds"))
@@ -1049,22 +1049,22 @@ max(model$sdr$gradient.fixed)
 
 
 
-### trend by vel
-run_meta_analysis(
-    model_type = "-trend-by-vel", 
-    y_type = "trend",
-    knots = 600, # 400 & 600 work, failed to converg with 500 & 700
-    data_type = "all-95-optimized4"
-  )
+# ### trend by vel
+# run_meta_analysis(
+#     model_type = "-trend-by-vel", 
+#     y_type = "trend",
+#     knots = 600, # 400 & 600 work, failed to converg with 500 & 700
+#     data_type = "all-95-optimized4"
+#   )
   
   
 # # main model
-# run_meta_analysis(
-#   model_type = "-vel-both", 
-#   y_type = "vel", 
-#   knots = 600, # 400 & 600 work, failed to converg with 500 & 700
-#   data_type = "all-95-optimized4"
-# )
+run_meta_analysis(
+  model_type = "-vel-both",
+  y_type = "vel",
+  knots = 600, # 400 & 600 work, failed to converg with 500 & 700
+  data_type = "all-95-optimized4"
+)
 
 # main trend model complete
 # run_meta_analysis(
