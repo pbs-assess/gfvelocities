@@ -1,11 +1,3 @@
-collapse_outliers <- function(.x, outliers) {
-  .x_max <- quantile(.x, outliers[2], na.rm = T)
-  .x_min <- quantile(.x, outliers[1], na.rm = T)
-  .x[.x > .x_max] <- .x_max
-  .x[.x < .x_min] <- .x_min
-  .x
-}
-
 #' @param y_i Response vector
 #' @param X_ij Covariate matrix
 #' @param X_pj Covariate prediction matrix
