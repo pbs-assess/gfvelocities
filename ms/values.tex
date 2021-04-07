@@ -1,0 +1,172 @@
+% temperature range and change
+\newcommand{\lowTMean}{4.6}
+\newcommand{\highTMean}{10.2}
+\newcommand{\tempMean}{6.7}
+\newcommand{\tempMeanSD}{1.6}
+\newcommand{\meanTTrend}{0.6}
+\newcommand{\lowTTrend}{-0.2}
+\newcommand{\highTTrend}{1.8}
+\newcommand{\temptrendSD}{0.8}
+% temp change < 100 m
+\newcommand{\meanTTrendONE}{1.2}
+% DO range and change
+\newcommand{\lowDOMean}{0.7}
+\newcommand{\highDOMean}{5.7}
+\newcommand{\DOmeanSD}{1.4}
+\newcommand{\meanDOTrend}{-0.3}
+\newcommand{\lowDOTrend}{-2.8}
+\newcommand{\highDOTrend}{0.6}
+\newcommand{\DOtrendSD}{0.9}
+% temp change <= 50 m
+\newcommand{\meanTTrendONE}{1.3}
+\newcommand{\minTTrendONE}{0.5}
+\newcommand{\maxTTrendONE}{2.3}
+% temp change between 50 and 200 m
+\newcommand{\meanTTrendTWO}{0.8}
+\newcommand{\minTTrendTWO}{0.2}
+\newcommand{\maxTTrendTWO}{1.7}
+% temp change >= 200 m
+\newcommand{\meanTTrendDEEP}{0.2}
+\newcommand{\minTTrendDEEP}{-0.3}
+\newcommand{\maxTTrendDEEP}{0.6}
+% DO change <= 50 m
+\newcommand{\meanDOTrendONE}{-2}
+\newcommand{\minDOTrendONE}{-3.4}
+\newcommand{\maxDOTrendONE}{-0.4}
+% DO change between 50 and 200 m
+\newcommand{\meanDOTrendTWO}{-0.2}
+\newcommand{\minDOTrendTWO}{-1.7}
+\newcommand{\maxDOTrendTWO}{0.6}
+% DO change >= 200 m
+\newcommand{\meanDOTrendDEEP}{0.1}
+\newcommand{\minTTrendDEEP}{-0.3}
+\newcommand{\maxTTrendDEEP}{0.8}
+% temperature velocities
+\newcommand{\tempvelSD}{16}
+\newcommand{\tempvelmean}{10}
+\newcommand{\tempvelmin}{-12}
+\newcommand{\tempvelmax}{87}
+\newcommand{\tempvelmid}{38}
+% DO velocities
+\newcommand{\DOvelSD}{22}
+\newcommand{\DOvelmean}{-6}
+\newcommand{\DOvelmin}{-91}
+\newcommand{\DOvelmax}{24}
+\newcommand{\DOvelmid}{-33}
+% trend model betas
+\newcommand{\betaTtrend}{-0.55}
+\newcommand{\ABSbetaTtrend}{0.55}
+\newcommand{\lowerTTbeta}{-0.87}
+\newcommand{\upperTTbeta}{-0.22}
+\newcommand{\betaTTinteract}{-0.05}
+\newcommand{\ABSbetaTTinteract}{0.05}
+\newcommand{\lowerTTinteract}{-0.27}
+\newcommand{\upperTTinteract}{0.17}
+\newcommand{\betaDOtrend}{0.34}
+\newcommand{\lowerDTbeta}{0.16}
+\newcommand{\upperDTbeta}{0.52}
+\newcommand{\betaDTinteract}{-0.12}
+\newcommand{\lowerDTinteract}{-0.23}
+\newcommand{\upperDTinteract}{-0.004}
+% velocity model betas
+\newcommand{\betaTvel}{0.28}
+\newcommand{\ABSbetaTvel}{0.28}
+\newcommand{\lowerTVbeta}{-0.04}
+\newcommand{\upperTVbeta}{0.60}
+\newcommand{\betaTVinteract}{-1.09}
+\newcommand{\ABSbetaTVinteract}{1.09}
+\newcommand{\lowerTVinteract}{-1.48}
+\newcommand{\upperTVinteract}{-0.70}
+\newcommand{\betaDOvel}{-0.48}
+\newcommand{\lowerDVbeta}{-0.82}
+\newcommand{\upperDVbeta}{-0.15}
+\newcommand{\betaDVinteract}{0.25}
+\newcommand{\lowerDVinteract}{-0.05}
+\newcommand{\upperDVinteract}{0.55}
+% trend group means: temp
+\newcommand{\HTtrendShelfRockfish}{-1.6}
+\newcommand{\HTtrendSablefish}{0.3}
+% trend group means: DO
+\newcommand{\LDOtrendShelfRockfish}{1.2}
+\newcommand{\LDOtrendSablefish}{-0.3}
+\newcommand{\LDOtrendLingcod}{-0.1}
+% velocity group means: temp
+\newcommand{\HtempSharkSkate}{-1.8}
+\newcommand{\HtempShelfRockfish}{-1.3}
+\newcommand{\HtempSlopeFlatfish}{-0.1}
+\newcommand{\HtempSlopeRockfish}{0.1}
+\newcommand{\HtempSablefish}{1}
+% velocity group means: DO
+\newcommand{\LDOtrendSablefish}{0.4}
+\newcommand{\LDOtrendLingcod}{0.7}
+\newcommand{\LDOtrendSlopeFlatfish}{-1.4}
+\newcommand{\LDOtrendSlopeRockfish}{-1.1}
+% ecology model effect sizes
+% sig main effects and interactions
+\newcommand{\tempTroph}{-0.91, -1.4 to -0.43}
+%\newcommand{\tempZone}{0.75, 0.23 to 1.26}
+% interaction shows effect more at deepest depths
+\newcommand{\Tmbentho}{-0.14, -0.73 to 0.44}
+%\newcommand{\TZoneX}{0.65, 0.04 to 1.25}
+% interaction shows effect only at deepest depths
+\newcommand{\DOhitroph}{-0.89, -1.26 to -0.52}
+\newcommand{\DOlotroph}{0.33, -0.16 to 0.81}
+\newcommand{\DOmhitroph}{-0.62, -0.94 to -0.29} % high trophic level
+\newcommand{\DOtrophX}{0.65, 0.11 to 1.18} % low troph slope diff
+% sig main effects only
+%\newcommand{\DOzone}{-0.60, -1.1 to -0.1}
+%\newcommand{\DOsociality}{-0.66, -1.22 to -0.1}
+% none significant
+\newcommand{\tempRange}{0.50, -0.1 to 1.1}
+%\newcommand{\tempSociality}{0.38, -0.24 to 1}
+\newcommand{\DOrange}{-0.48, -1.07 to 0.12}
+\newcommand{\minDOTrendDEEP}{-0.3}
+\newcommand{\maxDOTrendDEEP}{0.8}
+\newcommand{\DOlotroph}{-0.57, -0.98 to -0.16}
+\newcommand{\DOhitroph}{-0.33, -0.81 to 0.16}
+% life history model effect sizes
+\newcommand{\Ltempdepth}{0.29, -0.07 to 0.65}
+\newcommand{\Ltempiqr}{0.57, 0.21 to 0.92}
+\newcommand{\Ltempage}{-1.0, -2 to 0}
+\newcommand{\Ldodepth}{-0.43, -0.73 to -0.13}
+\newcommand{\Ldoiqr}{-0.30, -0.6 to 0}
+\newcommand{\Ldoage}{-0.70, -1.4 to 0}
+
+% update means to include ABS and raw
+\newcommand{\tempvelmean}{10.5}
+\newcommand{\tempvelmeanABS}{10.5}
+\newcommand{\tempvelmean}{10.1}
+\newcommand{\DOvelmean}{-6.26}
+\newcommand{\DOvelmeanABS}{11}
+
+
+% life history model effect sizes
+\newcommand{\Ltempdepth}{0.29, -0.07 to 0.65}
+\newcommand{\Ltempiqr}{0.57, 0.21 to 0.92}
+\newcommand{\Ltempage}{-1.0, -2 to 0}
+\newcommand{\Ldodepth}{-0.43, -0.73 to -0.13}
+\newcommand{\Ldoiqr}{-0.30, -0.6 to 0}
+\newcommand{\Ldoage}{-0.70, -1.4 to 0}
+
+
+% ecology model effect sizes
+% sig main effects and interactions
+% interaction shows effect more at deepest depths
+\newcommand{\tempZone}{0.98, 0.47 to 1.49}
+\newcommand{\Tmbentho}{0.15, -0.47 to 0.77}
+\newcommand{\TZoneX}{0.30, -0.3 to 0.9}
+% interaction shows effect only at deepest depths
+\newcommand{\DOlotroph}{-0.57, -0.98 to -0.16}
+\newcommand{\DOhitroph}{-0.33, -0.81 to 0.16}
+\newcommand{\DOmhitroph}{0.032, -0.453 to 0.516}
+\newcommand{\DOtrophX}{-0.65, -1.18 to -0.11}
+
+
+% sig main effects only
+\newcommand{\tempTroph}{-0.96, -1.44 to -0.48}
+\newcommand{\DOzone}{-0.79, -1.32 to -0.26}
+\newcommand{\DOsociality}{-0.63, -1.21 to -0.06}
+% none significant
+\newcommand{\tempRange}{0.19, -0.43 to 0.81}
+\newcommand{\tempSociality}{0.60, 0 to 1.2}
+\newcommand{\DOrange}{-0.28, -0.88 to 0.32}
