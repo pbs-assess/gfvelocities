@@ -34,7 +34,7 @@ library(ggplot2)
 library(gfplot)
 library(gfdata)
 library(sdmTMB)
-library(gfranges)
+library(gfvelocities)
 ```
 
 
@@ -198,7 +198,7 @@ From previously saved model
 ```{r}
 savedmodel <- readRDS( file = paste0("data/", spp, 
     "/maturity-ogive-", spp, "-", ssid_string, ".rds"))
-(gfranges::plot_mat_ogive(savedmodel) +
+(gfvelocities::plot_mat_ogive(savedmodel) +
         scale_colour_viridis_d(option = "C") +
         ggplot2::ggtitle(paste("Length at maturity for", species)))
 ggsave(here::here("ms", "figs", paste0("maturity-", spp, ".png")), width = 4, height = 5)

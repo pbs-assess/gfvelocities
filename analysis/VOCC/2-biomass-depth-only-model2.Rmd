@@ -35,7 +35,7 @@ library(ggplot2)
 library(gfplot)
 library(gfdata)
 library(sdmTMB)
-library(gfranges)
+library(gfvelocities)
 ```
 
 ```{r params}
@@ -114,7 +114,7 @@ covars <- readRDS("data/event-covariates.rds") %>% select(-geometry)
 data <- dplyr::left_join(biomass, covars) 
 # scale predictors before filtering to ensure mean and SD are global
 data <- data %>% mutate(raw_depth = depth, depth = log(raw_depth))
-data <- gfranges::scale_predictors(data, # predictors = c(quo(depth)))
+data <- gfvelocities::scale_predictors(data, # predictors = c(quo(depth)))
   predictors = c(quo(depth), quo(mixed), quo(muddy), quo(sandy), quo(rocky), quo(any_rock))
 )
 data <- data %>%
@@ -234,7 +234,7 @@ if (!exists("nd_all")) {
   bath <- readRDS("data/bathymetry-data")
   # dat <- bath$data %>% scale_survey_predictors()
   dat <- bath$data %>% mutate(raw_depth = depth, depth = log(raw_depth))
-  dat <- gfranges::scale_predictors(dat, predictors = c(quo(depth)))
+  dat <- gfvelocities::scale_predictors(dat, predictors = c(quo(depth)))
 
   # create grids for each ssid separately
   ssid <- 1

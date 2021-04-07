@@ -10,7 +10,7 @@ library(tidyverse)
 library(sdmTMB)
 # library(future)
 library(dplyr)
-library(gfranges)
+library(gfvelocities)
 
 plot_map_raster <- function(dat, column = "est") {
     ggplot(dat, aes_string("X", "Y", fill = column)) +

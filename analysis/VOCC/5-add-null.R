@@ -4,7 +4,7 @@ library(dplyr)
 library(tidyverse)
 library(ggplot2)
 library(sdmTMB)
-library(gfranges)
+library(gfvelocities)
 
 setwd(here::here("analysis", "VOCC"))
 null_number <- 6

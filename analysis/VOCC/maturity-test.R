@@ -25,10 +25,10 @@ plot_mat_ogive(m2)
 # # change code so sample_id_re applies ssid as random effect
 # m3 <- fit_mat_ogive_re(fish, type = "length", sample_id_re = TRUE, year_re = TRUE)
 # 
-# gfranges::plot_mat_ogive(m3) 
+# gfvelocities::plot_mat_ogive(m3) 
 # 
 # m5 <- fit_mat_ogive_re(filter(fish, year > 2006), type = "length", sample_id_re = F, year_re = TRUE)
-# gfranges::plot_mat_ogive(m5) 
+# gfvelocities::plot_mat_ogive(m5) 
 
 data <- readRDS("data/bocaccio/data-by-maturity-bocaccio-1n3n4n16.rds")
 ggplot(maturity$data, aes(length, weight, colour = as.factor(sex))) +

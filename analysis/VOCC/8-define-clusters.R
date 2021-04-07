@@ -3,7 +3,7 @@ setwd(here::here("analysis", "VOCC"))
 
 library(tidyverse)
 library(clusterthat)
-library(gfranges)
+library(gfvelocities)
 source("vocc-regression-functions.R")
 # source("plot-clusters.R")
 
@@ -117,43 +117,43 @@ batch_cluster_plots <- function(x,
   text_label = coefs$species_age
 ){
   
-  p1 <- gfranges::plot_clusters(
+  p1 <- gfvelocities::plot_clusters(
     x, data = data,  text_label = text_label,
     colour_vector = (coefs$depth), colour_label = "Depth") + #theme(text = element_text(size=5)) +
     # scale_color_viridis_c(direction = -1, trans = fourth_root_power) 
     scale_color_viridis_c(direction = -1) 
   
-  p2 <- gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p2 <- gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = (coefs$age_mean), colour_label = "age") + 
     scale_color_viridis_c(direction = -1, trans = fourth_root_power) 
   # scale_color_viridis_c(direction = -1) 
   
-  p3 <- gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p3 <- gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = as.factor(coefs$Diet),
     colour_label = "Grouping") + scale_colour_brewer(palette = 11)
   
-  p4 <- gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p4 <- gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = as.factor(coefs$Schooling),
     colour_label = "Grouping") + scale_colour_brewer(palette = 11)
   
-  p5 <- gfranges::plot_clusters(
+  p5 <- gfvelocities::plot_clusters(
     x, data = data,  text_label = text_label,
     colour_vector = as.factor(coefs$BenthoPelagicPelagicDemersal), 
     colour_label = "Grouping") + scale_colour_brewer(palette = 11)
   
-  p6 <- gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p6 <- gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = as.factor(coefs$NorthMiddleSouth), 
     colour_label = "Grouping") + scale_colour_brewer(palette = 11)
   
-  p7 <-gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p7 <-gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = (coefs$intercept), colour_label = "intercept") + 
     scale_color_viridis_c(direction = -1) 
   
-  p8 <-gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p8 <-gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = (coefs$temp_high), colour_label = "temp_high") + 
     scale_color_viridis_c(option = "C") 
   
-  p9 <-gfranges::plot_clusters(x, data = data,  text_label = text_label,
+  p9 <-gfvelocities::plot_clusters(x, data = data,  text_label = text_label,
     colour_vector = (coefs$DO_low), colour_label = "DO_low") + 
     scale_color_viridis_c(direction = 1) 
   
@@ -226,7 +226,7 @@ factoextra::fviz_nbclust(temp_coefs, cluster::pam, method = "silhouette",
 
 
 m_kmeans <- kmeans(temp_coefs, 4)
-gfranges::plot_clusters(m_kmeans, data = temp_coefs,
+gfvelocities::plot_clusters(m_kmeans, data = temp_coefs,
   colour_vector = (coefs$depth), text_label = coefs$species,
   colour_label = "Depth") +
   scale_color_viridis_c(direction = -1, trans = log10)
@@ -234,7 +234,7 @@ gfranges::plot_clusters(m_kmeans, data = temp_coefs,
 m_pam <- cluster::pam(temp_coefs, k = 2L)
 m_pam_manhattan <- cluster::pam(temp_coefs, k = 2L, metric = "manhattan")
 
-gfranges::plot_clusters(
+gfvelocities::plot_clusters(
   #m_kmeans,
   m_pam,
   # m_pam_manhattan,

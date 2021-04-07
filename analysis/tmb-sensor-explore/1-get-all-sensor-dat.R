@@ -1,7 +1,7 @@
 library(tidyverse)
 library(gfplot)
 library(sdmTMB)
-library(gfranges)
+library(gfvelocities)
 
 
 # get older sensor data

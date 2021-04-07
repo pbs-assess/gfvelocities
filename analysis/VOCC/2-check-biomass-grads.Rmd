@@ -27,7 +27,7 @@ library(ggplot2)
 library(gfplot)
 library(gfdata)
 library(sdmTMB)
-library(gfranges)
+library(gfvelocities)
 ```
 
 ```{r params}
@@ -93,7 +93,7 @@ data <- dplyr::left_join(biomass, covars)
 
 # scale predictors before filtering to ensure mean and SD are global
 data <- data %>% mutate(raw_depth = depth, depth = log(raw_depth))
-data <- gfranges::scale_predictors(data, # predictors = c(quo(depth)))
+data <- gfvelocities::scale_predictors(data, # predictors = c(quo(depth)))
   predictors = c(quo(depth), quo(mixed), quo(muddy), quo(sandy), quo(rocky), quo(any_rock))
 )
 data <- data %>%

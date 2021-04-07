@@ -9,10 +9,10 @@ editor_options:
 # Fit spatial temporal models of bottom DO
 
 ```{r setup}
+library(gfvelocities)
 library(tidyverse)
 library(gfplot)
 library(sdmTMB)
-library(gfranges)
 
 plot_map_raster <- function(dat, column = "est") {
     ggplot(dat, aes_string("X", "Y", fill = column)) +

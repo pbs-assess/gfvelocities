@@ -1,11 +1,8 @@
 # setwd(here::here("analysis", "VOCC"))
 
-if (!require(patchwork)) install.packages("patchwork")
-if (!require(ggpubr)) install.packages("ggpubr")
-
 library(TMB)
 library(tidyverse)
-library(gfranges)
+library(gfvelocities)
 library(patchwork)
 library(ggpubr)
 

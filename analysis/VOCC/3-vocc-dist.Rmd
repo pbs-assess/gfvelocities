@@ -33,9 +33,9 @@ options(digits = 4)
 ```
 
 ```{r pkgs, cache=FALSE, warning=FALSE, message=FALSE}
-library("gfranges")
-library("dplyr")
-library("ggplot2")
+library(gfvelocities)
+library(dplyr)
+library(ggplot2)
 
 ggplot2::theme_set(gfplot::theme_pbs())
 ```
@@ -747,7 +747,7 @@ gradbv
 ```{r }
 gf3t$squashed_velocity <- collapse_outliers(gf3t$velocity, c(0.005, 0.995))
 
-grad3 <- gfranges::plot_vocc(gf3t,
+grad3 <- plot_vocc(gf3t,
   raster_cell_size = 4,
   # theme = "black",
   coast = TRUE,
@@ -776,7 +776,7 @@ grad3
 ```{r eval=F}
 # gf3t$squashed_velocity <- collapse_outliers(gf3t$velocity, c(0.005, 0.995))
 
-grad3 <- gfranges::plot_vocc(gf3t,
+grad3 <- plot_vocc(gf3t,
   raster_cell_size = 4,
   # theme = "black",
   coast = TRUE,
@@ -804,7 +804,7 @@ grad3
 ```{r }
 #raster_max <- quantile(gf3$mean_biomass, 0.995, na.rm = T)
 gf3$mean_biomass2 <- collapse_outliers(gf3$mean_biomass, c(0, 0.995))
-grad4 <- gfranges::plot_vocc(gf3,
+grad4 <- plot_vocc(gf3,
   raster_cell_size = 4,
   # theme = "black",
   coast = TRUE,
@@ -830,7 +830,7 @@ grad4
 ```
 
 ```{r }
-grad5 <- gfranges::plot_vocc(gf3t,
+grad5 <- plot_vocc(gf3t,
   raster_cell_size = 4,
   # theme = "black",
   coast = TRUE,
@@ -857,7 +857,7 @@ grad5
 ```
 
 ```{r eval=F}
-grad6 <- gfranges::plot_vocc(gf3t,
+grad6 <- plot_vocc(gf3t,
   raster_cell_size = 4,
   # theme = "black",
   coast = TRUE,
@@ -884,7 +884,7 @@ grad6
 
 ```{r eval=F}
 raster_max <- quantile(gf3t$CV, 0.90, na.rm = TRUE)
-grad7 <- gfranges::plot_vocc(gf3t,
+grad7 <- plot_vocc(gf3t,
   raster_cell_size = 4,
   # theme = "black",
   coast = TRUE,

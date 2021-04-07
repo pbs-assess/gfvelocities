@@ -1,7 +1,7 @@
 # ### JUST CLIMATE AND FISHING COVARIATES
 library(tidyverse)
 library(sdmTMB)
-library(gfranges)
+library(gfvelocities)
 
 setwd(here::here("analysis", "VOCC"))
 
