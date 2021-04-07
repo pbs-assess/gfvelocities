@@ -12,28 +12,20 @@ write_tex <- function(x, macro, ...) {
 
 
 # load appropriate final models
-# model_trend <- readRDS("analysis/VOCC/models/trend-all-95-optimized2-08-01-trend-with-do-1-500.rds") # optimized
-# model_trend <- readRDS("analysis/VOCC/models/trend-all-95-optimized3-11-24-trend-with-do-1-400.rds")
-# model_trend <- readRDS(here::here("analysis/VOCC/models/trend-all-95-optimized4-11-27-trend-with-do-1-500.rds"))
-# model_trend <- readRDS(here::here("analysis/VOCC/models/trend-all-95-optimized4-11-29-trend-with-do-1-700.rds")) # not converged
 model_trend <- readRDS(here::here("analysis/VOCC/models/trend-all-95-optimized4-11-30-trend-with-do-1-600.rds"))
 max(model_trend$sdr$gradient.fixed)
 
-# model_vel <- readRDS("analysis/VOCC/models/vel-all-95-optimized2-08-01-vel-both-1-400.rds") # optimized and converges
-# model_vel <- readRDS("analysis/VOCC/models/vel-all-95-optimized3-11-18-vel-both-1-400.rds")
-# model_vel <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-27-vel-both-1-400.rds"))
 model_vel <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-28-vel-both-1-600.rds"))
-
-# model_vel <- readRDS("analysis/VOCC/models/vel-all-95-optimized4-12-01-vel-both-group-1-600-DO.rds")
-# model_vel <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-29-vel-both-1-700-DO.rds")) # not converged
 max(model_vel$sdr$gradient.fixed)
 
 # load supplementary data
-# stats <- readRDS(paste0("analysis/VOCC/data/life-history-behav.rds"))
-stats <- readRDS(paste0("analysis/VOCC/data/life-history-behav-new-growth.rds")) %>% mutate(age = firstup(age))
-alldata <- readRDS(paste0("analysis/VOCC/data/all-newclim-untrimmed-dvocc-med.rds")) %>% 
+stats <- readRDS(here::here(paste0("analysis/VOCC/data/life-history-behav-new-growth.rds"))) %>% mutate(age = firstup(age))
+# stats <- readRDS(here::here("analysis/VOCC/data/life-history-behav-new-growth3.rds"))
+
+alldata <- readRDS(here::here(paste0("analysis/VOCC/data/all-newclim-untrimmed-dvocc-med.rds"))) %>% 
   mutate(squashed_fishing_vel = if_else(is.na(squashed_fishing_vel), 0, squashed_fishing_vel),
     squashed_catch_vel = if_else(is.na(squashed_catch_vel), 0, squashed_catch_vel))
+
 ## FILTER TO DEPTHS SAMPLED
 # range(survey_sets$depth_m, na.rm = T) 
 #   18 1308
@@ -83,7 +75,7 @@ alldata <- alldata %>%
 # 
 # alldata50 <- alldata %>% filter(depth <= 50)
 # alldataDO <- alldata %>% filter(depth < 200) %>% filter(depth > 50)
-alldata200 <- alldata %>% filter(depth >= 200)
+# alldata200 <- alldata %>% filter(depth >= 200)
 # 
 # paste0("% temp change <= 50 m") %>% readr::write_lines("ms/values.tex", append = TRUE)
 # write_tex(round(mean(alldata50$temp_trend), digits = 1), "meanTTrendONE")
@@ -2990,73 +2982,4 @@ ggsave(here::here("ms", "figs", "worm-plot-ests-vel-do-extremes-min-sort.pdf"), 
 # (p_temp_est_worm | p_do_est_worm ) / grid::textGrob("Biomass trend at midpoint of climate trend experienced", just = 0.5, gp = grid::gpar(fontsize = 11)) + plot_layout(height = c(10, 0.02))
 #
 # ggsave(here::here("ms", "figs", "worm-plot-ests-trend.pdf"), width = 9, height = 6)
-
-
-### exploratory boxplots ####
-model_vel$pred_dat %>%
-  filter(type == "temp") %>% 
-  group_by(genus, species, chopstick) %>% 
-  filter(squashed_temp_vel_scaled == max(squashed_temp_vel_scaled)) %>% 
-  summarise(est = est_p, se = se_p) %>% 
-  ggplot(aes(chopstick, est, colour = chopstick)) + 
-  geom_boxplot()
-
-model_vel$pred_dat %>%
-  filter(type == "temp") %>% 
-  group_by(genus, species, chopstick) %>% 
-  filter(squashed_temp_vel_scaled == min(squashed_temp_vel_scaled)) %>% 
-  summarise(est = est_p, se = se_p) %>% 
-  ggplot(aes(chopstick, est, colour = chopstick)) + 
-  geom_boxplot()
-
-model_vel$pred_dat %>%
-  filter(type == "temp") %>% 
-  group_by(genus, species, chopstick) %>% 
-  filter(squashed_temp_vel_scaled == mean(squashed_temp_vel_scaled)) %>% 
-  summarise(est = est_p, se = se_p) %>% 
-  ggplot(aes(chopstick, est, colour = chopstick)) + 
-  geom_boxplot()
-
-model_vel$pred_dat %>%
-  filter(type == "DO") %>% 
-  group_by(genus, species, chopstick) %>% 
-  filter(squashed_DO_vel_scaled == max(squashed_DO_vel_scaled)) %>% 
-  summarise(est = est_p, se = se_p) %>% 
-  ggplot(aes(chopstick, est, colour = chopstick)) + 
-  geom_boxplot()
-
-model_vel$pred_dat %>%
-  filter(type == "DO") %>% 
-  group_by(genus, species, chopstick) %>% 
-  filter(squashed_DO_vel_scaled == min(squashed_DO_vel_scaled)) %>% 
-  summarise(est = est_p, se = se_p) %>% 
-  ggplot(aes(chopstick, est, colour = chopstick)) + 
-  geom_boxplot()
-
-# 
-# model$pred_dat %>%
-#   filter(type == "temp") %>% 
-#   group_by(genus, species, chopstick) %>% 
-#   filter(temp_trend_scaled == max(temp_trend_scaled)) %>% 
-#   summarise(est = est_p, se = se_p) %>% 
-#   ggplot(aes(chopstick, est, colour = chopstick)) + 
-#   geom_boxplot()
-# 
-# model$pred_dat %>%
-#   filter(type == "DO") %>% 
-#   group_by(genus, species, chopstick) %>% 
-#   filter(DO_trend_scaled == max(DO_trend_scaled)) %>% 
-#   summarise(est = est_p, se = se_p) %>% 
-#   ggplot(aes(chopstick, est, colour = chopstick)) +
-#   geom_violin() + 
-#   geom_boxplot() 
-# 
-# model$pred_dat %>%
-#   filter(type == "DO") %>% 
-#   group_by(genus, species, chopstick) %>% 
-#   filter(DO_trend_scaled == min(DO_trend_scaled)) %>% 
-#   summarise(est = est_p, se = se_p) %>% 
-#   ggplot(aes(chopstick, est, colour = chopstick)) +
-#   geom_violin() + 
-#   geom_boxplot() 
 
