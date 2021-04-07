@@ -1,5 +1,5 @@
 Package: gfvelocities
-Title: Contrasting local climate velocity impacts in warm and cool locations
+Title: Spatiotemporal modelling of groundfish biomass densities in response to climate
 Version: 0.0.0.9000
 Authors@R: 
      c(person(given = "Philina",
@@ -7,11 +7,11 @@ Authors@R:
            role = c("aut", "cre"),
            email = "philina.english@dfo-mpo.gc.ca",
 	   comment = c(ORCID = "0000-0003-2992-6782")),
-	person(given = c("Sean", "C."),
+	   person(given = c("Sean", "C."),
            family = "Anderson",
            role = c("aut"),
            comment = c(ORCID = "0000-0001-9563-1937")))
-Description: What the package does (one paragraph).
+Description: This package contains the code used in the analysis described in the manuscript posted as preprint at https://ecoevorxiv.org/b87ng/.
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
