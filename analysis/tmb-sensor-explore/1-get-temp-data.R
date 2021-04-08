@@ -1,10 +1,11 @@
-# GET SEA SURFACE TEMPERATURE 
+# GET SENSOR DATA from trawl surveys
+# must be on DFO network to use this code until after line 178
+library(tidyverse)
+library(sdmTMB)
+# library(gfvelocities)
+if (!require(gfdata)) install.packages("gfdata")
+if (!require(gfplot)) install.packages("gfplot"); library(gfplot)
 
-# based on https://cran.r-project.org/web/packages/rerddap/vignettes/Using_rerddap.html
-# install.packages("rerddap")
-# devtools::install_github("ropensci/rerddap")
-
-# GET SENSOR DATA
 # trawl_depth <- gfdata::get_sensor_data_trawl(
 #   ssid = c(1,4,3,16),
 #   attribute = c("depth"),
@@ -49,9 +50,15 @@
 
 sd_trawl <- readRDS(here::here("analysis/tmb-sensor-explore/data/dat-sensor-trawl-processed.rds"))
 
+
+# GET SEA SURFACE TEMPERATURE 
+
+# based on https://cran.r-project.org/web/packages/rerddap/vignettes/Using_rerddap.html
+# install.packages("rerddap")
+if (!require(rerddap)) devtools::install_github("ropensci/rerddap")
+
 # RECOMMENDED TO DO IN CHUNKS TO AVOID TIMING OUT
 sd_trawl <- sd_trawl %>% filter(ssid == 16)
-
 
 # GET SST AT LOCATION OF AND ON DAY OF FISHING EVENT
 get_event_SST <- function(data,
@@ -195,7 +202,6 @@ sd_trawl_meanSST4 <- readRDS(here::here("analysis/tmb-sensor-explore/data/dat-se
 sd_trawl_meanSST16 <- readRDS(here::here("analysis/tmb-sensor-explore/data/dat-sensor-trawl-SST-16.rds"))
 
 
-
 trawl_meanSST <- dplyr::bind_rows(list(
   sd_trawl_meanSST1, 
   sd_trawl_meanSST3,
@@ -214,8 +220,7 @@ trawl_meanSST <- dplyr::bind_rows(list(
 
 
 # GET STT FOR PREDICTION GRIDS
-library(sdmTMB)
-library(dplyr)
+if (!require(gfplot)) install.packages("gfplot")
 
 # first convert UTMs to lat lon
 qcs_grid_ll <- gfplot:::utm2ll(qcs_grid, utm_zone = 9) %>% rename(longitude = X, latitude = Y) %>% select(latitude, longitude)

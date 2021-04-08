@@ -1,16 +1,20 @@
+# get sensor data from trawl surveys
+# must be on DFO network to use this code until after line 178
+
 library(tidyverse)
 library(gfplot)
 library(sdmTMB)
 library(gfvelocities)
+if (!require(gfdata)) install.packages("gfdata")
+if (!require(gfplot)) install.packages("gfplot")
 
 
 # get older sensor data
-library(tidyverse)
+# gfdata::get_sensor_attributes()
 
 d <- gfdata::get_table("FE_SALINITY_DO")
 names(d) <- tolower(names(d))
 head(d)
-
 
 .d <- d %>% # left_join(d, fe, by = "fishing_event_id") %>%
   group_by(fishing_event_id) %>%
@@ -39,10 +43,13 @@ View(.d)
 head(.d)
 glimpse(.d)
 # merge with newer sensor data
-new_sensor_data <- readRDS("analysis/tmb-sensor-explore/data/dat-sensor-trawl.rds")
-# library(tidyverse)
+
+new_sensor_data <- gfdata::get_sensor_data_trawl(ssid = c(1, 3, 4, 16), spread_attributes = FALSE)
+# saveRDS(new_sensor_data, file = here::here("analysis/tmb-sensor-explore/data/dat-sensor-trawl.rds"))
+# new_sensor_data <- readRDS(here::here("analysis/tmb-sensor-explore/data/dat-sensor-trawl.rds"))
+
 head(new_sensor_data)
-View(new_sensor_data)
+# View(new_sensor_data)
 .d_trawl <- new_sensor_data %>%
   group_by(fishing_event_id) %>%
   mutate(
@@ -113,7 +120,7 @@ all_sensor <- full_join(.d_trawl4, .d, by = "fishing_event_id") %>%
 glimpse(.d_trawl)
 glimpse(all_sensor)
 View(all_sensor)
-bath <- readRDS(file = "analysis/VOCC/data/bathymetry-data")
+bath <- readRDS(file = here::here("analysis/VOCC/data/bathymetry-data"))
 bath$data$fishing_event_id <- as.integer(bath$data$fishing_event_id)
 glimpse(bath$data$year)
 bath$data$year <- as.double(bath$data$year)
@@ -165,30 +172,35 @@ d_trawl$Y <- d_trawl$lat
 d_trawl <- as_tibble(gfplot:::ll2utm(d_trawl, utm_zone = 9))
 
 # d_trawl[d_trawl$fishing_event_id == 308835,]$year <- 2003
+saveRDS(d_trawl, here::here("analysis/tmb-sensor-explore/data/all-sensor-data-processed.rds"))
 
 
-saveRDS(d_trawl, "analysis/tmb-sensor-explore/data/all-sensor-data-processed.rds")
 
-
-d_trawl <- readRDS("analysis/tmb-sensor-explore/data/all-sensor-data-processed.rds")
+# explore saved sensor data 
+d_trawl <- readRDS(here::here("analysis/tmb-sensor-explore/data/all-sensor-data-processed.rds"))
 
 glimpse(d_trawl)
-View(d_trawl)
+# View(d_trawl)
 # d_trawl <- filter(d_trawl, !is.na(temperature_c), !is.na(depth))
 
+hist(d_trawl$temperature_c)
+hist(log(d_trawl$temperature_c))
+hist(d_trawl$do_mlpl)
+hist(d_trawl$salinity_psu)
 
+# temperature
 ggplot(d_trawl, aes(depth, temperature_c, colour = temperature_c, size = temperature_c_N / 100)) +
   geom_point() +
   facet_wrap(~year) +
   scale_color_viridis_c()
 
+# lots of NAs
 ggplot(d_trawl, aes(X, Y, colour = temperature_c)) +
   geom_point() +
   facet_wrap(~year) +
   scale_color_viridis_c()
-hist(d_trawl$temperature_c)
-hist(log(d_trawl$temperature_c))
 
+# DO
 ggplot(d_trawl, aes(X, Y, colour = do_mlpl)) +
   geom_point() +
   facet_wrap(~year) +
@@ -199,18 +211,16 @@ ggplot(d_trawl, aes(depth, do_mlpl, colour = do_mlpl)) +
   facet_wrap(~year) +
   scale_color_viridis_c()
 
-
+# Salinity
 ggplot(d_trawl, aes(depth, salinity_psu, colour = salinity_psu, size = salinity_psu_N / 100)) +
   geom_point() +
   facet_wrap(~year) +
   scale_color_viridis_c()
 
-
 ggplot(d_trawl, aes(X, Y, colour = salinity_psu)) +
   geom_point() +
   facet_wrap(~year) +
   scale_color_viridis_c()
-hist(d_trawl$salinity_psu)
 
 # note that N values pre2017 are not on same scale as those post2017
 ggplot(d_trawl, aes(depth, salinity_psu, colour = temperature_c, size = sqrt(salinity_psu_N))) +
@@ -218,7 +228,7 @@ ggplot(d_trawl, aes(depth, salinity_psu, colour = temperature_c, size = sqrt(sal
   facet_wrap(~year) +
   scale_color_viridis_c()
 
-
+# lots of NAs here too
 ggplot(d_trawl, aes(X, Y, colour = depth)) +
   geom_point() +
   facet_wrap(~year) +
