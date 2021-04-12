@@ -53,8 +53,5 @@ if (!require(rgdal)) install.packages("rgdal")
 # only works on DFO network
 # if (!require(gfdata)) install.packages("gfdata")
 
-# for comparison with sdmTMB climate models
-# if (!require(gmb)) install.packages("gmb")
-
 # I think I've replaced this with a more customizable internal function
 # if (!require( ggquiver)) install.packages(" ggquiver")
