@@ -9,7 +9,7 @@ Velocity calculation functions are designed and annotated in an effort for them 
 
 *This is a work in progress: arguments may change and not all functionality has been tested.*
 
-The analysis is broken into three parts. 
+The 'analysis' contains three subfolders. 
 The 'get-setup' folder contains all primliminary organization and data extraction code. 
 Parts of these scripts will only work on the DFO network.
 The 'tmb-senser-explore' folder contains code to construct and select most appropriate sdmTMB models of bottom temperature and dissolved oxygen using CTD data. 
