@@ -13,4 +13,4 @@ The analysis is broken into three parts.
 The 'get-setup' folder contains all primliminary organization and data extraction code. 
 Parts of these scripts will only work on the DFO network.
 The 'tmb-senser-explore' folder contains code to construct and select most appropriate sdmTMB models of bottom temperature and dissolved oxygen using CTD data. 
-The 'VOCC' folder contains a work flow that builds biomass density models and complete rest of velocity of climate change analyses.  
+The 'VOCC' folder contains a work flow that builds biomass density models and completes the rest of velocity of climate change analyses.  Files in these folders are numbered in the order in which they need to be run. 
