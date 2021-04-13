@@ -1,8 +1,6 @@
 # GET SENSOR DATA from trawl surveys
 # must be on DFO network to use this code until after line 178
-library(tidyverse)
-library(sdmTMB)
-# library(gfvelocities)
+if (!require(tidyverse)) install.packages("tidyverse"); library(tidyverse)
 if (!require(gfdata)) install.packages("gfdata")
 if (!require(gfplot)) install.packages("gfplot"); library(gfplot)
 

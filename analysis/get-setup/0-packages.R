@@ -1,7 +1,16 @@
 # this code installs these packages only if not already installed
 # if installed version is outdated you may need to update some of the these packages
+
 if (!require(remotes))  install.packages("remotes")
 if (!require(gfvelocities)) remotes::install_github("pbs-assess/gfvelocities")
+
+# only works on DFO network
+if (!require(gfdata)) install.packages("gfdata")
+
+# for comparison with sdmTMB climate models
+if (!require(gmb)) install.packages("gmb")
+
+
 if (!require(Matrix)) install.packages("Matrix", type = "source")
 if (!require(TMB)) remotes::install_github("kaskr/adcomp/TMB")
 if (!require(sdmTMB)) remotes::install_github("pbs-assess/sdmTMB") 
@@ -49,9 +58,6 @@ if (!require(rgdal)) install.packages("rgdal")
 # for producing latex values and table code
 # if (!require(readr)) install.packages("readr")
 # if (!require(kableExtra)) install.packages("kableExtra")
-
-# only works on DFO network
-# if (!require(gfdata)) install.packages("gfdata")
 
 # I think I've replaced this with a more customizable internal function
 # if (!require( ggquiver)) install.packages(" ggquiver")
