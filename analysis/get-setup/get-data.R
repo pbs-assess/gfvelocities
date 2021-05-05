@@ -116,7 +116,7 @@ species <- list(
 species <- "Pacific Herring"
 
 getwd()
-setwd(here::here("/analysis/VOCC"))
+setwd(here::here("analysis/VOCC"))
 
 for (i in species) {
 species <- tolower(i)
