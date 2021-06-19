@@ -532,7 +532,9 @@ ggsave(here::here("ms", "figs", "supp-trend-chopsticks-ordered.pdf"), width = 14
 
 ### ALL VELOCITY CHOPS ####
 # # if using vel to predict trends
-# model_vel <- model_trend
+# model_vel <- model_trend_vel
+# add temp-only model fig
+model_vel <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-29-vel-temp-1-600.rds"))
 
 temp_vel_slopes <- chopstick_slopes(model_vel,
   x_variable = "squashed_temp_vel_scaled",
@@ -634,6 +636,85 @@ ggsave(here::here("ms", "figs", "supp-vel-chopsticks-ordered.pdf"), width = 14, 
 ## ggsave(here::here("ms", "figs", "supp-vel-chopsticks-w-order.pdf"), width = 14, height = 10)
 ## ggsave(here::here("ms", "figs", "supp-dvocc-chopsticks-ordered.pdf"), width = 14, height = 10)
 
+
+
+## plot temp only model with combined model 
+
+model_vel1 <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-29-vel-temp-1-600.rds"))
+
+temp_vel_slopes1 <- chopstick_slopes(model_vel1,
+  x_variable = "squashed_temp_vel_scaled",
+  interaction_column = "squashed_temp_vel_scaled:mean_temp_scaled", type = "temp"
+) %>%
+  mutate(sort_var = (diff)) 
+# mutate(sort_var = -(diff)) # orders by high - low slopes
+# mutate(sort_var = slope_est)
+
+temp_vel_slopes1 <- left_join(temp_vel_slopes1, stats)
+
+
+(p_temp_vel_chops1 <- plot_fuzzy_chopsticks(model_vel1,
+  x_variable = "squashed_temp_vel_scaled", type = "temp",
+  y_label = "Predicted mature biomass vel",
+  order_by_chops = NULL,
+  slopes = temp_vel_slopes # if add, the global slope can be included for insig
+) + coord_cartesian(xlim = c(-0.25, 4), ylim = c(-30, 37)
+) +
+    xlab("") + theme(legend.position = "none")
+)
+
+temp_vel_slopes1$species[temp_vel_slopes1$species == "Rougheye/Blackspotted Rockfish Complex"] <- "Rougheye/Blackspotted"
+
+p_temp_all_vel_slopes1 <- plot_chopstick_slopes(temp_vel_slopes1,
+  type = "temp", add_global = F, point_size = 1, alpha_range = c(0.3, 0.99),
+  legend_position = "none"
+) + 
+  ylab(" ") +
+  coord_flip(ylim =c(-6,11))
+
+
+
+
+model_vel <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-28-vel-both-1-600.rds"))
+
+temp_vel_slopes <- chopstick_slopes(model_vel,
+  x_variable = "squashed_temp_vel_scaled",
+  interaction_column = "squashed_temp_vel_scaled:mean_temp_scaled", type = "temp"
+) %>%
+ mutate(sort_var = (diff)) 
+# mutate(sort_var = -(diff)) # orders by high - low slopes
+# mutate(sort_var = slope_est)
+
+temp_vel_slopes <- left_join(temp_vel_slopes, stats)
+
+
+(p_temp_vel_chops <- plot_fuzzy_chopsticks(model_vel,
+  x_variable = "squashed_temp_vel_scaled", type = "temp",
+  y_label = "Predicted mature biomass vel",
+  order_by_chops = NULL,
+  slopes = temp_vel_slopes # if add, the global slope can be included for insig
+) + coord_cartesian(xlim = c(-0.25, 4), ylim = c(-30, 37)
+) +
+    xlab("Temperature velocity (scaled)") + theme(legend.position = "none")
+)
+
+temp_vel_slopes$species[temp_vel_slopes$species == "Rougheye/Blackspotted Rockfish Complex"] <- "Rougheye/Blackspotted"
+
+p_temp_all_vel_slopes <- plot_chopstick_slopes(temp_vel_slopes,
+  type = "temp", add_global = F, point_size = 1, alpha_range = c(0.3, 0.99),
+  legend_position = "none"
+) + 
+  ylab(" ") +
+  coord_flip(ylim =c(-6,11))
+
+cowplot::plot_grid(
+  p_temp_all_vel_slopes, p_temp_vel_chops, 
+  p_temp_all_vel_slopes1, p_temp_vel_chops1, 
+  labels = c("a.", "", "b.", ""), label_size = 11,
+  ncol = 2, rel_widths = c(1, 2.5)
+)
+
+ggsave(here::here("ms", "figs", "supp-vel-chopsticks-temp-only-model.pdf"), width = 14, height = 10)
 
 #########################
 #########################
