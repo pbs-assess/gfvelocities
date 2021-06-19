@@ -68,7 +68,7 @@ gv_old <- vocc::calcvelocity(vg_old, vt_old)
 old_vel <- dplyr::left_join(vt_old, vg_old) %>% dplyr::left_join(., gv_old, by=c("x", "y")) %>% 
   dplyr::select(x, y, trend_gfvel = slope, grad_gfvel = spatial_gradient, vel_gfvel = velocity)
 
-test_data <- dplyr::left_join(old_vel, new_vel)
+test_data <- dplyr::left_join(old_vel, new_vel) %>% rename(trend_VoCC = trend, grad_VoCC = grad, vel_VoCC = vel)
 test_data  <- na.omit(test_data)
 
 # saveRDS(test_data, "analysis/VOCC/data/test-in-utm-all.rds")
@@ -77,6 +77,9 @@ test_data  <- na.omit(test_data)
 library(dplyr)
 library(ggplot2)
 
-test_data %>% ggplot() + geom_point(aes(trend, trend_gfvel))
-test_data %>% ggplot() + geom_point(aes(grad, grad_gfvel))
-test_data %>% ggplot() + geom_point(aes(vel, vel_gfvel))
+test_data %>% ggplot() + geom_point(aes(trend_VoCC, trend_gfvel))
+test_data %>% ggplot() + geom_point(aes(grad_VoCC, grad_gfvel))
+test_data %>% ggplot() + geom_point(aes(vel_VoCC, vel_gfvel)) + ggsidekick::theme_sleek()
+
+ggsave("test-gfvel-vs-VoCC.png", width = 3, height = 3)
+
