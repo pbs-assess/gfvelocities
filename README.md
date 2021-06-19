@@ -8,9 +8,9 @@ This analysis also relies on many of the same data extraction, data tidying, mod
 Velocity calculation functions are designed and annotated in an effort for them to be usable (or easily modified for use) with other data types. 
 
 The 'analysis' contains three subfolders. 
-The 'get-setup' folder contains all primliminary organization and data extraction code. 
+The 'get-setup' folder contains all preliminary organization and data extraction code. 
 Parts of these scripts will only work on the DFO network.
-The 'tmb-senser-explore' folder contains code to construct and select most appropriate sdmTMB models of bottom temperature and dissolved oxygen using CTD data. 
+The 'tmb-sensor-explore' folder contains code to construct and select most appropriate sdmTMB models of bottom temperature and dissolved oxygen using CTD data. 
 The 'VOCC' folder contains a work flow that builds biomass density models and completes the rest of velocity of climate change analyses.  Files in these folders are numbered in the order in which they need to be run. 
 
 *This is a work in progress: arguments may change and not all functionality has been tested.*

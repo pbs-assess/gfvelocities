@@ -1,5 +1,5 @@
 getwd()
-setwd(here::here("/analysis/VOCC"))
+setwd(here::here("analysis/VOCC"))
 env <- new.env() #parent = baseenv()
 
 # SPECIES with maturity
