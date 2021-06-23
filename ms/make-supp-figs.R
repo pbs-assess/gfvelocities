@@ -1290,6 +1290,59 @@ chopstick_slopes(model_trend,
 
 ggsave(here::here("ms", "figs", "supp-age-growth.pdf"), width = 5, height = 3.5)
 
+#### MAP OF SAMPLING LOCATIONS BY YEAR ####
+
+mdata <- readRDS(here::here("analysis/VOCC/data/arrowtooth-flounder/mod-mat-biomass-arrowtooth-flounder-tv-depth-only-1n3n4n16-new.rds"))
+
+# library(gfplot)
+
+.mdata <- mdata$data %>%
+  gfplot:::utm2ll(., utm_zone = 9)
+
+coast <- gfplot:::load_coastline(
+  range(.mdata$X) + c(-0.001, 0.001),
+  range(.mdata$Y) + c(-0.001, 0.001),
+  utm_zone = 9
+)
+
+mdata$data %>% filter(year >2007) %>% ggplot() + geom_point(aes(X,Y), shape = 20, size = 0.05, alpha=0.5) + 
+  geom_polygon(data = coast, aes_string(x = "X", y = "Y", group = "PID"),
+    fill = "grey87", col = "grey70", lwd = 0.2) +
+  coord_fixed(expand = F, 
+    xlim = c(range(mdata$data$X)+ c(-0.001, 0.001)), ylim = c(range(mdata$data$Y)+ c(-0.001, 0.001))) + 
+  facet_wrap(~year, ncol = 3) + ggsidekick::theme_sleek() +
+  theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+
+ggsave(here::here("ms", "figs","supp-survey-sets-by-year.png"),
+  width = 5, height = 7)
+
+
+
+.even <- mdata$data %>% filter(year >2007 & !(ssid %in% c(1,3)))
+ggplot(.even) + geom_point(aes(X,Y), shape = 20, size = 0.05, alpha=0.5) + 
+  geom_polygon(data = coast, aes_string(x = "X", y = "Y", group = "PID"),
+    fill = "grey87", col = "grey70", lwd = 0.2) +
+  coord_fixed(expand = F, 
+    xlim = c(range(.even$X)+ c(-0.001, 0.001)), ylim = c(range(.even$Y)+ c(-0.001, 0.001))) + 
+  facet_wrap(~year, ncol = 3) + ggsidekick::theme_sleek() +
+  theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+
+ggsave(here::here("ms", "figs","survey-sets-by-even-year.png"),
+  width = 5, height = 4)
+
+
+.odd <- mdata$data %>% filter(year >2007 & ssid %in% c(1,3))
+ggplot(.odd) + geom_point(aes(X,Y), shape = 20, size = 0.05, alpha=0.5) + 
+  geom_polygon(data = coast, aes_string(x = "X", y = "Y", group = "PID"),
+    fill = "grey87", col = "grey70", lwd = 0.2) +
+  coord_fixed(expand = F, 
+    xlim = c(range(.even$X)+ c(-0.001, 0.001)), ylim = c(range(.even$Y)+ c(-0.001, 0.001))) + 
+  facet_wrap(~year, ncol = 3) + ggsidekick::theme_sleek() +
+  theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+
+ggsave(here::here("ms", "figs","survey-sets-by-odd-year.png"),
+  width = 5, height = 4)
+
 #### CORRELATIONS ####
 ggplot(model_vel$data, aes(temp_trend, biotic_trend)) + 
   geom_point(alpha=.2) + facet_wrap(~species_age)
