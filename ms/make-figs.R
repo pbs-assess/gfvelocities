@@ -447,9 +447,10 @@ mean_temp + mean_do + trend_temp + trend_do + vel_temp + vel_do +
     coord_fixed(xlim = c(180, 790), ylim = c(5370, 6040)) +
     theme(
       plot.margin = margin(0, 0.5, 0, 0, "cm"),
-      axis.text = element_blank(), axis.ticks = element_blank(),
-      axis.title.x = element_blank(), axis.title.y = element_blank()
-    ))
+      # axis.text = element_blank(), axis.ticks = element_blank(),
+      axis.title.x = element_text(), axis.title.y = element_text(angle=90)
+    ) + xlab("Easting (km)") + ylab("Northing (km)\n") #zone = 9
+  )
 
 # with legend position tweak
 layoutc <- "
