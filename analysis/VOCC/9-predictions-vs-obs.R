@@ -4,6 +4,82 @@ library(ggplot2)
 library(sdmTMB)
 # options(scipen = 999)
 
+m1 <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn.rds"))
+m2 <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn-2.rds"))
+
+(se1 <- as.list(m1$sd_report, "Std. Error"))
+(se2 <- as.list(m2$sd_report, "Std. Error"))
+# yes they appear identical!
+
+m3 <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn-update.rds")))
+m4 <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn-update-2.rds")))
+
+(se3 <- as.list(m3$sd_report, "Std. Error"))
+(se4 <- as.list(m4$sd_report, "Std. Error"))
+# yes they appear identical!
+
+predictions <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn-predictions.rds")))
+events_roms <- readRDS(here::here("analysis/tmb-sensor-explore/data/roms_temp_by_events2.rds")) %>% select(fishing_event_id, roms, year)
+
+predictions <- left_join(predictions, events_roms) %>% filter(year >2007)
+
+
+pred_do <- readRDS(file = here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn-predictions.rds"))
+
+# cor(pred_do$roms, pred_do$est, use = "pairwise.complete.obs")
+
+
+tplot <- ggplot(predictions, aes(temperature_c, est, colour = year)) + 
+  geom_point(alpha = 0.75, size = 0.75) +
+  coord_fixed(xlim = c(2.5,14), ylim = c(2.5,14)) +
+  # coord_cartesian(xlim = c(2,13), ylim = c(2,13)) +
+  geom_abline(intercept = 0, slope = 1) +
+  # labs(tag = 'a.') +
+  scale_colour_viridis_c(name = "Year", option = "A", end = 0.75) +
+  ylab("Predicted value") +
+  xlab("Observed CTD value") +
+  ggtitle("a.  Bottom Temperature (°C)") +
+  ggsidekick::theme_sleek() + theme(
+    axis.title.x = element_blank(), legend.position = c(0.15,0.75))
+
+doplot <- ggplot(pred_do, aes(do_mlpl, exp(est), colour = year)) + 
+  geom_point(alpha = 0.75, size = 0.75) +
+  coord_fixed(expand = F, xlim = c(0.01,8.5), ylim = c(0.01,8.5)) +
+  # coord_cartesian(xlim = c(2,13), ylim = c(2,13)) +
+  geom_abline(intercept = 0, slope = 1) +
+  # labs(tag = 'b.') +
+  scale_colour_viridis_c(name = "Year", option = "A", end = 0.75) +
+  # ylab("Predicted") +
+  xlab("Observed CTD value") +
+  ggtitle("b.  Bottom DO (ml per L)") +
+  ggsidekick::theme_sleek() + theme(
+    axis.title = element_blank(),
+    legend.position = "none")
+
+(tplot | doplot )/grid::textGrob("Observed CTD value", just = 0.5, gp = grid::gpar(fontsize = 10, col = "black", alpha = 0.75)) + patchwork::plot_layout(height = c(10, 0.02)) 
+
+ggsave(here::here("ms/figs/supp-est-vs-obs-climate.jpg"), width = 6.5, height = 3.5)
+
+
+(rplot <- ggplot(predictions, aes(roms, est, colour = year)) + 
+  geom_point(alpha = 0.75, size = 1) +
+  coord_fixed(xlim = c(2.5,14), ylim = c(2.5,14)) +
+  # coord_cartesian(xlim = c(2,13), ylim = c(2,13)) +
+  geom_abline(intercept = 0, slope = 1) +
+  # labs(tag = 'a.') +
+  scale_colour_viridis_c(name = "Year", option = "A", end = 0.75) +
+  ylab("Mean May-August CTD-based Model Predictions") +
+  xlab("Mean April-September ROMS Predictions") +
+  # ggtitle("Contrast Models of Bottom Temperature (°C)") +
+  ggsidekick::theme_sleek() + theme(
+    # axis.title.x = element_blank(), 
+    legend.position = c(0.15,0.8)))
+
+ggsave(here::here("ms/figs/supp-est-vs-obs-roms.jpg"), width = 4.5, height = 4.5)
+
+
+#####
+
 species <- c(
   "Big Skate",
   "Longnose Skate",
@@ -130,7 +206,7 @@ dat <- dat %>% mutate(
     facet_wrap(~species, ncol = 8) +
     ggsidekick::theme_sleek())
 
-ggsave(here::here("ms/figs/supp-est-vs-obs-mat.jpg"), width= 14, height = 9.5)
+ggsave(here::here("ms/figs/supp-est-vs-obs-jul-2020-mat.jpg"), width= 14, height = 9.5)
  
 
 ########
