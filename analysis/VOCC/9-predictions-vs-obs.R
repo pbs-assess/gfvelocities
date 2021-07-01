@@ -1,6 +1,7 @@
 # library(TMB)
 library(tidyverse)
 library(ggplot2)
+library(sdmTMB)
 # options(scipen = 999)
 
 species <- c(
@@ -84,37 +85,145 @@ try({d})
 
 dat$species[dat$species == "Rougheye/Blackspotted Rockfish Complex"] <- "Rougheye/Blackspotted"
 
-# raw densities are in kg//m2 so *10000 to get kg/ha
-(g <- dat %>% #filter(year %in% c(2008,2009,2018,2019)) %>%
-    ggplot( aes((density)*10000, exp(est)*10000, colour=year
-      ))+
-    geom_point(alpha=0.1) + 
-    scale_x_log10(breaks = c(0.001, 1, 1000), labels = c(0.001, 1, 1000))+
-    scale_y_log10(breaks = c(0.001, 1, 1000), labels = c(0.001, 1, 1000))+
-    coord_cartesian(ylim=c(0.00001, max(dat$est)*10000), xlim=c(0.00001, max(dat$density)*10000)) +
-    geom_abline(a=0,b=1) +
+
+dat <- dat %>% mutate(
+  density2 = (density)*10000*1000,
+  est_exp2 = exp(est)*10000*1000,
+  density3 = ifelse(density2 == 0, 0.001, density2), 
+  est_exp3 = ifelse(est_exp2 < 0.00001, 0.000001, est_exp2)
+)
+
+# raw densities are in kg/m2 so *10000*1000 to get g/ha
+(g <- dat %>% 
+    # filter(year %in% c(2008,2009,2018,2019)) %>%
+    # ggplot( aes((density)*10000*1000, exp(est)*10000*1000))+
+    ggplot(aes(density3, est_exp3, colour=year))+
+    geom_segment(
+      x = log10(0.00000001), 
+      y = log10(0.00000001), 
+      xend = (1000), 
+      yend = (1000), colour = "black", size = 0.1) +
+    geom_jitter(width = 0.3, height = 0, 
+      # alpha = 0.3, 
+      size = 0.1, 
+      shape = 20) + 
+    # coord_cartesian(
+    #   ylim=c(min(dat_imm$est_exp2), max(exp(dat_imm$est))*10000*1000), 
+    #   xlim=c(0.01, max(dat_imm$density)*10000*1000)) +
+    coord_fixed(
+      ylim=c(0.00001, max(exp(dat_imm$est))*10000*1000),
+      xlim=c(0.00001, max(exp(dat_imm$est))*10000*1000)
+    ) +
+    scale_x_log10(
+      # breaks = c(0.1, 1, 10, 1000),
+      # labels = c(0.1, 1, 10, 1000)
+      breaks = c(0.001, 1, 1000), 
+      labels = c(0.001, 1, 1000)
+    ) +
+    scale_y_log10(
+      breaks = c(0.001, 1, 1000), 
+      labels = c(0.001, 1, 1000)
+    ) +
     scale_colour_viridis_c(option = "A", end = 0.75) +
     ylab("Predicted biomass density (kg/ha)") +
     xlab("Observed biomass density (kg/ha)") +
     facet_wrap(~species, ncol = 8) +
     ggsidekick::theme_sleek())
 
-ggsave(here::here("ms/figs/supp-est-vs-obs-july-2020.jpg"), width= 12.5, height = 8)
+ggsave(here::here("ms/figs/supp-est-vs-obs-mat.jpg"), width= 14, height = 9.5)
  
 
+########
+########
+
+spp <- "pacific-cod"
+
+spp <- "yelloweye-rockfish"
+
+spp <- "quillback-rockfish" # converged
+spp <- "widow-rockfish" # converged
+# spp <- "pacific-ocean-perch" # converged
+# spp <- "petrale-sole"  # converged
+
+
+# m <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/mod-imm-biomass-", spp, "-tv-depth-only-1n3n4n16.rds")))
+# (se <- as.list(m$sd_report, "Std. Error"))
+# m <- sdmTMB:::update_model(m, xy_cols = c("X", "Y"))
+
+
+# m <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/mod-imm-biomass-", spp, "-tv-depth-only-1n3n4n16-2021.rds")))
+# class(m) <- "sdmTMB"
+m <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/mod-imm-biomass-", spp, "-tv-depth-only-1n3n4n16-2021-noRW.rds")))
+
+m
+(se <- as.list(m$sd_report, "Std. Error"))
+max(m$gradients)
+
+p <- predict(m)
+
+saveRDS(p, here::here(paste0("analysis/VOCC/data/", spp, "/check-mod-predictions-", spp, "-tv-depth-only-1n3n4n16.rds")))
+
+# # check for improvement?
+# 
+# d1 <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/check-mod-predictions-", spp, "-tv-depth-only-1n3n4n16-old-imm.rds")))
+# 
+# d2 <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/check-mod-predictions-", spp, "-tv-depth-only-1n3n4n16.rds")))
+# 
+# d1$est[1:10]
+# d2$est[1:10]
+# 
+# (g1 <- d1 %>% filter(year > 2008) %>% mutate(
+#   density2 = (density)*10000*1000,
+#   est_exp2 = exp(est)*10000*1000,
+#   density3 = ifelse(density2 == 0, 0.0001, density2), 
+#   est_exp3 = ifelse(est_exp2 < 0.00000001, 0.00000001, est_exp2)
+# ) %>%
+#     # ggplot( aes((density)*10000*1000, exp(est)*10000*1000, colour=year))+
+#     ggplot(aes(density3, est_exp3, colour=year))+
+#     geom_point(alpha=0.1) + 
+#     # coord_cartesian(
+#     #   ylim=c(min(dat_imm$est_exp2), max(exp(dat_imm$est))*10000*1000), 
+#     #   xlim=c(0.01, max(dat_imm$density)*10000*1000)) +
+#     coord_fixed(
+#       ylim=c(0.00000001, max(exp(dat_imm$est))*10000*1000),
+#       xlim=c(0.00000001, max(exp(dat_imm$est))*10000*1000)
+#     ) +
+#     scale_x_log10(
+#       # breaks = c(0.1, 1, 10, 1000),
+#       # labels = c(0.1, 1, 10, 1000)
+#       breaks = c(0.001, 1, 1000), 
+#       labels = c(0.001, 1, 1000)
+#     ) +
+#     scale_y_log10(
+#       breaks = c(0.001, 1, 1000), 
+#       labels = c(0.001, 1, 1000)
+#     ) +
+#     # geom_abline(a=0.01,b=1) +
+#     scale_colour_viridis_c(option = "A", end = 0.75) +
+#     ylab("Predicted biomass density (g/ha)") +
+#     xlab("Observed biomass density (g/ha)") +
+#     # facet_wrap(~year) +
+#     # ggtitle("fixed depth") +
+#     ggtitle("time-varying depth") +
+#     ggsidekick::theme_sleek())
+# 
+# g1 + g2 + patchwork::plot_layout(guides = "collect")
+# 
+
+
 species_imm <- c(
+  "Pacific Cod",
   "North Pacific Spiny Dogfish",
   "Walleye Pollock",
-  # "Pacific Cod", # missing... maybe because model rebuilt in july when others werent?
   "Sablefish",
-  "Lingcod", 
-  "Rosethorn Rockfish", 
+  "Lingcod",
+  "Rosethorn Rockfish",
   "Yellowmouth Rockfish",
-  "Canary Rockfish", 
+  "Canary Rockfish",
   "Darkblotched Rockfish",
   "Greenstriped Rockfish",
-  "Pacific Ocean Perch", 
-  "Redbanded Rockfish", 
+  "Pacific Ocean Perch",
+  "Redbanded Rockfish",
   "Sharpchin Rockfish",
   "Silvergray Rockfish",
   "Splitnose Rockfish",
@@ -135,12 +244,16 @@ species_imm <- c(
   "Quillback Rockfish",
   "Yelloweye Rockfish"
 )
+
 dat_imm <- purrr::map_dfr(species_imm, function(x){
   spp <- gsub(" ", "-", gsub("\\/", "-", tolower(x)))
   
   ## these ones are for imm and total models rebuilt Nov 18, 2020 w 2-biomass-depth-only-model2.Rmd
   try({
     d <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/check-mod-predictions-", spp, "-tv-depth-only-1n3n4n16.rds")))
+    ## or new updated ones
+    # d <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/check-mod-predictions-", spp, "-tv-depth-only-1n3n4n16-imm.rds")))
+    
   })
 
   try({
@@ -157,21 +270,72 @@ dat_imm <- purrr::map_dfr(species_imm, function(x){
 
 dat_imm$species[dat_imm$species == "Rougheye/Blackspotted Rockfish Complex"] <- "Rougheye/Blackspotted"
 
+min_pos <- dat_imm %>% filter(density != 0) 
+min(min_pos$density*10000*1000)
+# min(exp(dat_imm$est)*10000*1000)
+dat_imm <- dat_imm %>% mutate(
+  density2 = (density)*10000*1000,
+  est_exp2 = exp(est)*10000*1000,
+  density3 = ifelse(density2 == 0, 0.001, density2), 
+  est_exp3 = ifelse(est_exp2 < 0.00001, 0.00001, est_exp2)
+)
+
 # raw densities are in kg/m2 so *10000*1000 to get g/ha
-(g <- dat_imm %>% #filter(year %in% c(2008,2009,2018,2019)) %>%
-    ggplot( aes((density)*10000*1000, exp(est)*10000*1000, colour=year
-    ))+
-    geom_point(alpha=0.1) + 
-    coord_cartesian(ylim=c(0.00000001, max(dat_imm$est)*10000*1000), xlim=c(0.00000001, max(dat_imm$density)*10000*1000)) +
-    scale_x_log10(breaks = c(0.001, 1, 1000), labels = c(0.001, 1, 1000))+
-    scale_y_log10(breaks = c(0.001, 1, 1000), labels = c(0.001, 1, 1000))+
-    geom_abline(a=0,b=1) +
+(g <- dat_imm %>% 
+    # filter(year %in% c(2008,2009,2018,2019)) %>%
+    # ggplot( aes((density)*10000*1000, exp(est)*10000*1000))+
+  ggplot(aes(density3, est_exp3, colour=year))+
+    geom_segment(
+      x = log10(0.00000001), 
+      y = log10(0.00000001), 
+      xend = (1000), 
+      yend = (1000), colour = "black", size = 0.1) +
+    geom_jitter(width = 0.3, height = 0, 
+      # alpha = 0.3, 
+      size = 0.1, 
+      shape = 20) + 
+    # coord_cartesian(
+    #   ylim=c(min(dat_imm$est_exp2), max(exp(dat_imm$est))*10000*1000), 
+    #   xlim=c(0.01, max(dat_imm$density)*10000*1000)) +
+    coord_fixed(
+      ylim=c(0.00001, max(exp(dat_imm$est))*10000*1000),
+      xlim=c(0.00001, max(exp(dat_imm$est))*10000*1000)
+      ) +
+    scale_x_log10(
+      # breaks = c(0.1, 1, 10, 1000),
+      # labels = c(0.1, 1, 10, 1000)
+      breaks = c(0.001, 1, 1000), 
+      labels = c(0.001, 1, 1000)
+      ) +
+    scale_y_log10(
+      breaks = c(0.001, 1, 1000), 
+      labels = c(0.001, 1, 1000)
+      ) +
+    
+    # geom_abline(a=0.01,b=1) +
     scale_colour_viridis_c(option = "A", end = 0.75) +
     ylab("Predicted biomass density (g/ha)") +
     xlab("Observed biomass density (g/ha)") +
-    facet_wrap(~species, ncol = 8) +
+    facet_wrap(~species, ncol = 8
+      # , scales = "free_y"
+      ) +
     ggsidekick::theme_sleek())
 
-ggsave(here::here("ms/figs/supp-est-vs-obs-nov-2020-imm.jpg"), width= 12.5, height = 7)
+ 
+ggsave(here::here("ms/figs/supp-est-vs-obs-nov-2020-imm-lims.jpg"), width= 14, height = 8)
 
 
+grad_imm <- purrr::map_dfr(species_imm, function(x){
+  spp <- gsub(" ", "-", gsub("\\/", "-", tolower(x)))
+  
+  try({m <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/mod-imm-biomass-", spp, "-tv-depth-only-1n3n4n16.rds")))
+  })
+  try({
+  max_grad <- max(m$gradients)
+  .d <- list(spp, max_grad)
+  names(.d) <- c("species", "gradient")
+  })
+  try({.d})
+})
+
+grad_imm  
