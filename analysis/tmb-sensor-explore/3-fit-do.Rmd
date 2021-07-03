@@ -271,10 +271,11 @@ plot_spde(spde)
 Current best model of DO
 ```{r eval=FALSE}
 
-# do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn.rds")))
+do_model_all_DOY <- readRDS((here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn.rds")))
 d_trawl1 <- do_model_all_DOY$data
 spde <- make_mesh(d_trawl1, xy_cols=c("X", "Y"), n_knots = 800, type = "kmeans")
 plot(spde)
+
 do_model_all_DOY <- sdmTMB::sdmTMB(
   log_do ~ 0 + as.factor(year) + temp_scaled + temp_scaled2 + DOY_scaled,
   data = d_trawl1,
@@ -293,7 +294,7 @@ saveRDS(do_model_all_DOY, file = (here::here(
   paste0(
     "analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-",
     "800kn", # Sys.Date(),
-    "-update.rds"
+    "-update-2.rds"
   )
 )))
 ```
@@ -321,6 +322,8 @@ pred_rows <- filter (predictions, abs != "Inf")
 sum(pred_rows$abs) # sum absolute error, divided by nrow for mean absolute error
 # 19719.73-17459.49 # difference in absolute error between 500 and 800 knots
 # 2260.24/19719.73  # 11% reduction in abs errors
+
+saveRDS(predictions, file = (here::here("analysis/tmb-sensor-explore/models/model-do-without-wcvi2016b-800kn-predictions.rds"))) 
 ```
 
 # DO predictions
