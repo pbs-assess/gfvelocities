@@ -5,12 +5,15 @@ date: "`r Sys.Date()`"
 output: html_document
 params: 
     # species: "Redbanded Rockfish"
-    #species: "Pacific Ocean Perch"
-    #species: "Pacific Cod"
-    #species: "Petrale Sole"
-    species: "Canary Rockfish"
+    # species: "Pacific Ocean Perch"
+    # species: "Pacific Cod"
+    species: "Quillback Rockfish"
+    # species: "Yelloweye Rockfish"
+    # species: "Petrale Sole"
+    # species: "Canary Rockfish"
     # # species: "Redstripe Rockfish"
     # species: "Shortbelly Rockfish"
+    # species: "Widow Rockfish"
     # species: "Lingcod"
     region: "All synoptic surveys"
     knots: 400
@@ -21,7 +24,7 @@ params:
     #covs: "-trawled-ssid"
     update_model: TRUE
     update_predictions: FALSE
-    update_model_check: FALSE
+    update_model_check: TRUE
 ---
 
 ```{r global_options, include=FALSE}
@@ -124,15 +127,31 @@ data <- data %>%
 
 ```
 
+Check raw data
+```{r}
+data %>% filter(year >2007) %>% ggplot() + geom_point(aes(X,Y, colour = density, size = density*1000), shape = 20, alpha=0.4) + 
+  # geom_polygon(data = coast, aes_string(x = "X", y = "Y", group = "PID"),
+  #   fill = "grey87", col = "grey70", lwd = 0.2) +
+  scale_colour_viridis_c(trans = fourth_root_power, direction = -1) +
+  coord_fixed(expand = F, 
+    xlim = c(range(data$X)+ c(-0.001, 0.001)), ylim = c(range(data$Y)+ c(-0.001, 0.001))) + 
+  facet_wrap(~year, ncol = 3) + ggsidekick::theme_sleek() +
+  theme(axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+```
+
+
+
 Make mesh
 ```{r}
+# m_old <- readRDS(here::here(paste0("analysis/VOCC/data/", spp, "/mod-imm-biomass-", spp, "-tv-depth-only-1n3n4n16.rds")))
+# data <- m_old$data
 
 if (region == "All synoptic surveys") {
   # spde <- sdmTMB::make_spde(data$X, data$Y, n_knots = knots)
   spde <- sdmTMB::make_mesh(data, c("X", "Y"), n_knots = knots, type = "kmeans")
 }
 
-sdmTMB::plot_spde(spde)
+plot(spde)
 ```
 
 
@@ -170,13 +189,13 @@ if (params$update_model) {
 
 
    try({ imm_formula <- as.formula(paste(
-      "imm_density ~ 0 + as.factor(year)", covariates, ""
+      "imm_density ~ 0 + as.factor(year)", covariates, "+ depth_scaled + depth_scaled2"
     ))
 
     imm_biomass <- sdmTMB::sdmTMB(
       data = data,
       imm_formula,
-      time_varying = ~ 0 + depth_scaled + depth_scaled2, #+ trawled
+      # time_varying = ~ 0 + depth_scaled + depth_scaled2, #+ trawled
       time = "year", spde = spde,
       family = tweedie(link = "log"),
       # ar1_fields = TRUE, # changed to TRUE on Oct 17 2019
@@ -184,14 +203,14 @@ if (params$update_model) {
       include_spatial = TRUE,
       nlminb_loops = 2,
       newton_steps = 2,
-      enable_priors = priors,
+      # enable_priors = priors,
       control = sdmTMBcontrol(step.min = 0.01, step.max = 1),
       silent = FALSE
     )
 
     saveRDS(imm_biomass,
       file = paste0("data/", spp, "/mod-imm-biomass-",
-        spp, covs, "-", ssid_string, ".rds"))
+        spp, covs, "-", ssid_string, "-2021-noRW.rds"))
    })
     
   } else {
