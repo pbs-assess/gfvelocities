@@ -200,7 +200,7 @@ dat <- dat %>% mutate(
       breaks = c(0.001, 1, 1000), 
       labels = c(0.001, 1, 1000)
     ) +
-    scale_colour_viridis_c(option = "A", end = 0.75) +
+    scale_colour_viridis_c(name = "Year", option = "A", end = 0.75) +
     ylab("Predicted biomass density (kg/ha)") +
     xlab("Observed biomass density (kg/ha)") +
     facet_wrap(~species, ncol = 8) +
@@ -389,7 +389,7 @@ dat_imm <- dat_imm %>% mutate(
       ) +
     
     # geom_abline(a=0.01,b=1) +
-    scale_colour_viridis_c(option = "A", end = 0.75) +
+    scale_colour_viridis_c(name = "Year", option = "A", end = 0.75) +
     ylab("Predicted biomass density (g/ha)") +
     xlab("Observed biomass density (g/ha)") +
     facet_wrap(~species, ncol = 8
