@@ -161,6 +161,11 @@ d_trawl <- mutate(d_trawl,
   DOY = lubridate::yday(date),
   DOY_scaled = arm::rescale(lubridate::yday(date)),
   DOY_scaled2 = arm::rescale(lubridate::yday(date))^2)
+
+# 1 redbanded fish found at too shallow a depth... probably leftover in net?
+# slender sole also has an outlier here, so maybe should throw out this event for everyone?
+# could mean there's a location or depth error?  currently still in climate models
+# d_trawl <- d_trawl[d_trawl$fishing_event_id!=2536031,]
 ```
 
 EXLORE TEMPERATURE at DEPTH
@@ -184,19 +189,19 @@ plot(spde)
 
 ```{r eval = F}
 # spde <- make_spde(d_trawl$X, d_trawl$Y, n_knots = 800)
-# m_temp_rw <- sdmTMB(
-#   temperature_c ~ 0 + as.factor(year),
-#   time_varying = ~ 0 + depth_scaled + depth_scaled2,
-#   data = d_trawl,
-#   ar1_fields = TRUE, # changed AR1 to true
-#   include_spatial = TRUE, 
-#   time = "year", spde = spde, 
-#   family = gaussian(link = "identity"),
-#   nlminb_loops = 2,
-#   newton_steps = 1,
-#   silent = FALSE
-# )
-# saveRDS(m_temp_rw, file = (here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn.rds")))
+m_temp_rw <- sdmTMB(
+  temperature_c ~ 0 + as.factor(year),
+  time_varying = ~ 0 + depth_scaled + depth_scaled2,
+  data = d_trawl,
+  ar1_fields = TRUE, # changed AR1 to true
+  include_spatial = TRUE,
+  time = "year", spde = spde,
+  family = gaussian(link = "identity"),
+  nlminb_loops = 2,
+  newton_steps = 1,
+  silent = FALSE
+)
+saveRDS(m_temp_rw, file = (here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn-2.rds")))
 ```
 
 New CV model code
@@ -224,7 +229,7 @@ m_temp_cv$max_gradients
 
 Check predictions against raw data
 ```{r}
-m_temp_rw <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn.rds"))
+m_temp_rw <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn-2.rds"))
 
 # m_temp_rw <- sdmTMB:::update_model(m_temp_rw)
 
@@ -232,7 +237,7 @@ predictions <- predict(m_temp_rw)
 predictions$residuals <- residuals(m_temp_rw)
 cor(predictions$est, predictions$temperature_c)^2 
 sum(abs(predictions$residuals))
-
+saveRDS(predictions, file = (here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn-predictions.rds")))
 # 2908.879-2789.322
 # 119.557/2908.879 # 4% reduction in abs errors
 ```
@@ -245,6 +250,13 @@ predictions <- left_join(predictions, events_roms)
 
 cor(predictions$roms, predictions$est, use = "pairwise.complete.obs")
 cor(predictions$roms, predictions$temperature_c, use = "pairwise.complete.obs")
+
+ggplot(predictions, aes(temperature_c, est, colour = year)) + geom_point(alpha=0.3) +
+  # facet_wrap(~year) + 
+  coord_cartesian(xlim = c(2,13), ylim = c(2,13)) +
+  geom_abline(intercept = 0, slope = 1) +
+    scale_colour_viridis_c(option = "A", end = 0.75) +
+  gfplot::theme_pbs()
 
 ggplot(predictions, aes(roms, est, colour = -depth)) + geom_point(alpha=0.3) + 
   facet_wrap(~year) + coord_cartesian(xlim = c(2,13), ylim = c(2,13)) +
