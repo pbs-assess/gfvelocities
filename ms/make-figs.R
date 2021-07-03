@@ -58,6 +58,21 @@ alldata <- alldata %>%
   filter(mean_temp < 11.3) # 0.005 and 0.995
 
 
+#### STATS: SAMPLES PER YEAR ####
+mdata <- readRDS(here::here("analysis/VOCC/data/arrowtooth-flounder/mod-mat-biomass-arrowtooth-flounder-tv-depth-only-1n3n4n16-new.rds"))
+
+annual_n <- mdata$data %>% filter(year >2007) %>% group_by(year#, ssid
+)%>% summarise(n = n()) #%>% View()
+mean(annual_n$n)
+min(annual_n$n)
+max(annual_n$n)
+sd(annual_n$n)
+paste0("% samples per year") %>% readr::write_lines("ms/values.tex", append = TRUE)
+write_tex(round(mean(annual_n$n)), "MeanN")
+write_tex(round(min(annual_n$n)), "MinN")
+write_tex(round(max(annual_n$n)), "MaxN")
+
+
 #### SAVE TEX VALUES FOR CLIMATE IQRs ####
 # 
 # paste0("% temperature range and change") %>% readr::write_lines("ms/values.tex", append = TRUE)
