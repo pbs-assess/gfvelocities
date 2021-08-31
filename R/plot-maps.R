@@ -134,13 +134,18 @@ plot_vocc <- function(df,
 
     if (white_zero) {
       gvocc <- gvocc +
-        geom_tile(aes(fill = fill), alpha = raster_alpha, width = raster_cell_size, height = raster_cell_size) +
+        geom_tile(aes(fill = fill, colour = fill), alpha = raster_alpha, width = raster_cell_size, height = raster_cell_size) +
         scale_fill_gradient2(
           low = low_fill, mid = mid_fill, high = high_fill, na.value = na_colour,
           trans = transform_col, breaks = breaks, labels = labels,
           limits = raster_limits
         ) +
-        labs(fill = fill_label)
+        scale_colour_gradient2(
+          low = low_fill, mid = mid_fill, high = high_fill, na.value = na_colour,
+          trans = transform_col, breaks = breaks, labels = labels,
+          limits = raster_limits
+        ) +
+        labs(fill = fill_label, colour = fill_label)
 
       if (theme_black) {
         gvocc <- gvocc + theme(
@@ -169,7 +174,7 @@ plot_vocc <- function(df,
     } else {
       
       gvocc <- gvocc +
-        geom_tile(aes(fill = fill), alpha = raster_alpha, width = raster_cell_size, height = raster_cell_size) + #
+        geom_tile(aes(fill = fill, colour = fill), alpha = raster_alpha, width = raster_cell_size, height = raster_cell_size) + #
         scale_fill_viridis_c(
           direction = viridis_dir,
           begin = viridis_begin,
@@ -178,7 +183,15 @@ plot_vocc <- function(df,
           trans = transform_col, breaks = breaks, labels = labels,
           limits = raster_limits
         ) +
-        labs(fill = fill_label)
+        scale_colour_viridis_c(
+          direction = viridis_dir,
+          begin = viridis_begin,
+          end = viridis_end,
+          option = viridis_option, na.value = na_colour,
+          trans = transform_col, breaks = breaks, labels = labels,
+          limits = raster_limits
+        ) +
+        labs(fill = fill_label, colour = fill_label)
       
       if (theme_black) {
         gvocc <- gvocc + theme(

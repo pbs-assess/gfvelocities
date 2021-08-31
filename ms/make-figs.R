@@ -421,7 +421,7 @@ mean_temp + mean_do + trend_temp + trend_do + vel_temp + vel_do +
   # transform_col = fourth_root_power,
   # raster_limits = c(10, 1300),
   legend_position = c(0.15, 0.2)
-) + guides(fill = guide_colorbar(reverse = TRUE)) +
+) + guides(fill = guide_colorbar(reverse = TRUE), colour = guide_colorbar(reverse = TRUE)) +
     ggtitle(" Synoptic trawl survey area") +
     annotate("text", 
       x = 460, y = 5450, 
@@ -494,7 +494,9 @@ depth + (mean_temp + mean_do + trend_temp + trend_do + vel_temp + vel_do + plot_
   plot_layout(design = layoutc)
 
 
-ggsave(here::here("ms", "figs", "climate-maps-w-depth.png"), width = 9, height = 6)
+ggsave(here::here("ms", "figs", "climate-maps-w-depth.pdf"), width = 9, height = 6)
+
+# ggsave(here::here("ms", "figs", "climate-maps-w-depth.png"), width = 9, height = 6)
 
 
 
@@ -1481,7 +1483,8 @@ p_do_worm2 <- plot_chopstick_slopes(do_vel_slopes, type = "DO",
     legend.box = "horizontal"
 )) 
 
-ggsave(here::here("ms", "figs", "worm-plot-vel-600.png"), width = 7, height = 7)
+ggsave(here::here("ms", "figs", "worm-plot-vel-600.pdf"), width = 7, height = 7)
+# ggsave(here::here("ms", "figs", "worm-plot-vel-600.png"), width = 7, height = 7)
 
 #### IF WE WANT PLOT OF BOTH TREND AND VELOCITY SLOPES TOGETHER ####
 
@@ -2040,7 +2043,8 @@ layout <- "
 wrap_plots(ygrob1, ygrob2, ygrob3, p1b, p3b
   ) + plot_layout(design = layout, widths = c(0.03, 1, 1)) 
 
-ggsave(here::here("ms", "figs", "species-map-panels-vel2.png"), width = 6, height = 11)
+ggsave(here::here("ms", "figs", "species-map-panels-vel2.pdf"), width = 6, height = 11)
+# ggsave(here::here("ms", "figs", "species-map-panels-vel2.png"), width = 6, height = 11)
 
 # wrap_plots(ygrob1, ygrob2, ygrob3, p1b, p1) + plot_layout(design = layout, widths = c(0.03, 1, 1))
 # ggsave(here::here("ms", "figs", "redbanded-map-panels.png"), width = 6, height = 11)
