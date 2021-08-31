@@ -4,6 +4,7 @@ library(ggplot2)
 library(sdmTMB)
 # options(scipen = 999)
 
+#### climate ####
 m1 <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn.rds"))
 m2 <- readRDS(here::here("analysis/tmb-sensor-explore/models/model-temp-all-years-800kn-2.rds"))
 
@@ -78,7 +79,7 @@ ggsave(here::here("ms/figs/supp-est-vs-obs-climate.jpg"), width = 6.5, height = 
 ggsave(here::here("ms/figs/supp-est-vs-obs-roms.jpg"), width = 4.5, height = 4.5)
 
 
-#####
+#### mature ####
 
 species <- c(
   "Big Skate",
@@ -175,10 +176,15 @@ dat <- dat %>% mutate(
     # ggplot( aes((density)*10000*1000, exp(est)*10000*1000))+
     ggplot(aes(density3, est_exp3, colour=year))+
     geom_segment(
-      x = log10(0.00000001), 
-      y = log10(0.00000001), 
-      xend = (1000), 
-      yend = (1000), colour = "black", size = 0.1) +
+      x = log10(0.06), 
+      y = log10(0.06), 
+      xend = log10(max(exp(dat$est))*10000*1000), 
+      yend = log10(max(exp(dat$est))*10000*1000), 
+      # x = log10(0.00000001), 
+      # y = log10(0.00000001), 
+      # xend = (1000), 
+      # yend = (1000), 
+      colour = "black", size = 0.1) +
     geom_jitter(width = 0.3, height = 0, 
       # alpha = 0.3, 
       size = 0.1, 
@@ -187,8 +193,9 @@ dat <- dat %>% mutate(
     #   ylim=c(min(dat_imm$est_exp2), max(exp(dat_imm$est))*10000*1000), 
     #   xlim=c(0.01, max(dat_imm$density)*10000*1000)) +
     coord_fixed(
-      ylim=c(0.00001, max(exp(dat_imm$est))*10000*1000),
-      xlim=c(0.00001, max(exp(dat_imm$est))*10000*1000)
+      expand = F,
+      ylim=c(0.00001, max(exp(dat$density))*10000*1000),
+      xlim=c(0.00001, max(exp(dat$density))*10000*1000)
     ) +
     scale_x_log10(
       # breaks = c(0.1, 1, 10, 1000),
@@ -206,11 +213,11 @@ dat <- dat %>% mutate(
     facet_wrap(~species, ncol = 8) +
     ggsidekick::theme_sleek())
 
-ggsave(here::here("ms/figs/supp-est-vs-obs-jul-2020-mat.jpg"), width= 14, height = 9.5)
+ggsave(here::here("ms/figs/supp-est-vs-obs-jul-2020-mat2.jpg"), width= 14, height = 9.5)
  
 
-########
-########
+#### new models ####
+
 
 spp <- "pacific-cod"
 
@@ -286,7 +293,7 @@ saveRDS(p, here::here(paste0("analysis/VOCC/data/", spp, "/check-mod-predictions
 # g1 + g2 + patchwork::plot_layout(guides = "collect")
 # 
 
-
+#### immature ####
 species_imm <- c(
   "Pacific Cod",
   "North Pacific Spiny Dogfish",
@@ -362,10 +369,15 @@ dat_imm <- dat_imm %>% mutate(
     # ggplot( aes((density)*10000*1000, exp(est)*10000*1000))+
   ggplot(aes(density3, est_exp3, colour=year))+
     geom_segment(
-      x = log10(0.00000001), 
-      y = log10(0.00000001), 
-      xend = (1000), 
-      yend = (1000), colour = "black", size = 0.1) +
+      x = log10(0.06), 
+      y = log10(0.06), 
+      xend = log10(max(exp(dat$est))*10000*1000), 
+      yend = log10(max(exp(dat$est))*10000*1000), 
+      # x = log10(0.00000001), 
+      # y = log10(0.00000001), 
+      # xend = (1000), 
+      # yend = (1000), 
+      colour = "black", size = 0.1) +
     geom_jitter(width = 0.3, height = 0, 
       # alpha = 0.3, 
       size = 0.1, 
@@ -373,9 +385,9 @@ dat_imm <- dat_imm %>% mutate(
     # coord_cartesian(
     #   ylim=c(min(dat_imm$est_exp2), max(exp(dat_imm$est))*10000*1000), 
     #   xlim=c(0.01, max(dat_imm$density)*10000*1000)) +
-    coord_fixed(
-      ylim=c(0.00001, max(exp(dat_imm$est))*10000*1000),
-      xlim=c(0.00001, max(exp(dat_imm$est))*10000*1000)
+    coord_fixed(expand = F,
+      ylim=c(0.00001, max(exp(dat_imm$density))*10000*1000),
+      xlim=c(0.00001, max(exp(dat_imm$density))*10000*1000)
       ) +
     scale_x_log10(
       # breaks = c(0.1, 1, 10, 1000),
@@ -398,8 +410,10 @@ dat_imm <- dat_imm %>% mutate(
     ggsidekick::theme_sleek())
 
  
-ggsave(here::here("ms/figs/supp-est-vs-obs-nov-2020-imm-lims.jpg"), width= 14, height = 8)
+ggsave(here::here("ms/figs/supp-est-vs-obs-nov-2020-imm2.jpg"), width= 14, height = 8)
 
+
+#### check gradients ####
 
 grad_imm <- purrr::map_dfr(species_imm, function(x){
   spp <- gsub(" ", "-", gsub("\\/", "-", tolower(x)))
