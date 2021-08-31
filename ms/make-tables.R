@@ -1,6 +1,9 @@
 library(kableExtra)
+library(tidyverse)
+library(gfvelocities)
 setwd(here::here())
-model_vel <- readRDS(here::here("analysis/VOCC/data/vel-all-95-optimized4-11-28-vel-both-1-600.rds"))
+model_vel <- readRDS(here::here("analysis/VOCC/models/vel-all-95-optimized4-11-28-vel-both-1-600.rds"))
+
 keepspp <- unique(model_vel$data$species_only)
 stats <- readRDS(paste0("analysis/VOCC/data/life-history-behav-new-growth3.rds")) %>% mutate(
     age = firstup(age),
@@ -23,13 +26,13 @@ spptab <- stats %>% filter(age == "Mature" & species %in% keepspp) %>%
   ) %>%
   select(species, 
     `Scientific name`, 
-    #family, 
+    family,
     prop_pos_sets, depth, depth_mat_iqr, age_mean, 
     `Range limit`, `Trophic level`, `Foraging zone`, Sociality
     ) %>% 
   rename(
     `Common name` = species,
-    # Family = family,
+    Family = family,
     `Proportion present` = prop_pos_sets,
     `Mature mean` = depth,
     `Mature IQR` = depth_mat_iqr,
@@ -53,7 +56,7 @@ spptabimm <- stats %>% filter(age == "Immature" & species %in% keepimm) %>% sele
 
 spptab <- left_join(spptab, spptabimm) %>% select(
   `Common name`, `Scientific name`,
-  # Family,
+  Family,
   `Proportion present`, 
   `Immature mean`, `Immature IQR`, `Mature mean`, `Mature IQR`, 
   `Immature mean age`, `Mature mean age`, 
