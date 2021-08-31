@@ -306,12 +306,12 @@ plot_fuzzy_chopsticks <- function(model,
         ), size = line_size,
         colour = global_col, se = F, inherit.aes = F
       ) +
-      scale_alpha_discrete(range = alpha_range, guide = F)
+      scale_alpha_discrete(range = alpha_range, guide = "none")
   }
 
   if (length(unique(pred_dat$age)) > 1) {
-    p <- p + scale_linetype_manual(values = c("dashed", "solid"), guide = F)
-    # p <- p + scale_linetype_manual(values=c("dotted", "solid"), guide = F)
+    p <- p + scale_linetype_manual(values = c("dashed", "solid"), guide = "none")
+    # p <- p + scale_linetype_manual(values=c("dotted", "solid"), guide = "none")
   }
 
   if (is.null(choose_species)) {
@@ -599,7 +599,7 @@ plot_chopstick_slopes <- function(slopedat,
       colour = global_col, fill = "white",
       inherit.aes = F
       ) +
-      scale_alpha_discrete(range = c(0.0, 0.99), guide = F) +
+      scale_alpha_discrete(range = c(0.0, 0.99), guide = "none") +
       coord_flip() +
       xlab("") + # ylab("") + # ggtitle("slopes") +
       gfplot:::theme_pbs() + theme(
@@ -611,11 +611,11 @@ plot_chopstick_slopes <- function(slopedat,
       )
 
     if (length(unique(slopedat$age)) > 1) {
-      p <- p + scale_linetype_manual(values = c("solid", "solid"), guide = F) +
-        scale_shape_manual(values = c(21, 19), guide = F)
+      p <- p + scale_linetype_manual(values = c("solid", "solid"), guide = "none") +
+        scale_shape_manual(values = c(21, 19), guide = "none")
     } else {
-      p <- p + scale_linetype_manual(values = c("solid"), guide = F) +
-        scale_shape_manual(values = c(16), guide = F)
+      p <- p + scale_linetype_manual(values = c("solid"), guide = "none") +
+        scale_shape_manual(values = c(16), guide = "none")
     }
   } else {
     p <- ggplot(slopedat, aes(
@@ -656,7 +656,7 @@ plot_chopstick_slopes <- function(slopedat,
       )
 
     if (add_global) {
-      p <- p + scale_alpha_discrete(range = c(0.0, 0.99), guide = F) +
+      p <- p + scale_alpha_discrete(range = c(0.0, 0.99), guide = "none") +
         geom_pointrange(aes(species,
           global_slope,
           ymin = global_slope - 1.96 * global_se,
@@ -669,23 +669,23 @@ plot_chopstick_slopes <- function(slopedat,
         inherit.aes = F
         )
     } else {
-      p <- p + scale_alpha_discrete(range = alpha_range, guide = F)
+      p <- p + scale_alpha_discrete(range = alpha_range, guide = "none")
     }
 
     if (length(unique(slopedat$age)) > 1) {
-      # p <- p + scale_linetype_manual(values=c("dashed", "solid"), guide = F) +
-      p <- p + scale_linetype_manual(values = c("solid", "solid"), guide = F) +
+      # p <- p + scale_linetype_manual(values=c("dashed", "solid"), guide = "none") +
+      p <- p + scale_linetype_manual(values = c("solid", "solid"), guide = "none") +
         scale_x_discrete(expand = expansion(mult = .02)) +
         guides(colour = guide_legend(override.aes = list(size = 0.4, linetype = 0)),
           shape = guide_legend(override.aes = list(size = 0.5, linetype = 0))
         ) +
-        scale_shape_manual(values = c(21, 19), guide = F)
+        scale_shape_manual(values = c(21, 19), guide = "none")
     } else {
-      p <- p + scale_linetype_manual(values = c("solid"), guide = F) +
+      p <- p + scale_linetype_manual(values = c("solid"), guide = "none") +
         scale_x_discrete(expand = expansion(mult = .02)) +
         guides(colour = guide_legend(override.aes = list(size = 0.4, linetype = 0))
           ) +
-        scale_shape_manual(values = c(16), guide = F)
+        scale_shape_manual(values = c(16), guide = "none")
     }
   }
   
@@ -943,11 +943,11 @@ plot_chop_est <- function(model,
         # legend.direction = "vertical"
       )
 
-      p <- p + scale_alpha_discrete(range = alpha_range, guide = F)
+      p <- p + scale_alpha_discrete(range = alpha_range, guide = "none")
 
     if (length(unique(pred_dat2$age)) > 1) {
-      # p <- p + scale_linetype_manual(values=c("dashed", "solid"), guide = F) +
-      p <- p + scale_linetype_manual(values = c("solid", "solid"), guide = F) +
+      # p <- p + scale_linetype_manual(values=c("dashed", "solid"), guide = "none") +
+      p <- p + scale_linetype_manual(values = c("solid", "solid"), guide = "none") +
         scale_y_discrete(expand = expansion(mult = .02)) +
         guides(
           shape = guide_legend(override.aes = list(size = 0.5, linetype = 0)), 
@@ -955,10 +955,10 @@ plot_chop_est <- function(model,
           ) +
         scale_shape_manual(values = c(21, 19))
     } else {
-      p <- p + scale_linetype_manual(values = c("solid"), guide = F) +
+      p <- p + scale_linetype_manual(values = c("solid"), guide = "none") +
         scale_y_discrete(expand = expansion(mult = .02)) +
         guides(colour = guide_legend(override.aes = list(size = 0.4))) +
-        scale_shape_manual(values = c(16), guide = F)
+        scale_shape_manual(values = c(16), guide = "none")
     }
 
   p
